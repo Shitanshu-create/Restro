@@ -1,103 +1,112 @@
 import { useState, useEffect, useCallback } from "react";
-import customerApi from "../api/customerApi.js";
+import * as customerApi from "../api/customer.api.js";
+
 
 export function useMenu() {
-  const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    customerApi.getMenu()
-      .then(res => { setMenu(res.data.menu || []); setLoading(false); })
-      .catch(err => { setError(err.response?.data?.message || "Failed to load menu"); setLoading(false); });
-  }, []);
 
-  return { menu, loading, error };
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+
+    const loadMenu = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        const res = await customerApi.getPublicMenu();
+        if (res.success) {
+            setCategories(res.categories || []);
+        } else {
+            setError(res.message);
+        }
+        setLoading(false);
+    }, []);
+
+
+    useEffect(() => { loadMenu(); }, [loadMenu]);
+
+
+    return { categories, loading, error, reload: loadMenu };
 }
 
-export function useCart() {
-  const [cart, setCart] = useState([]);
 
-  function addToCart(item) {
-    setCart(prev => {
-      const key = `${item.id}-${item.quantity || "Full"}`;
-      const idx = prev.findIndex(c => `${c.id}-${c.quantity || "Full"}` === key);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = { ...updated[idx], count: updated[idx].count + 1 };
-        return updated;
-      }
-      return [...prev, { ...item, count: 1 }];
-    });
-  }
+export function useCustomerAuth() {
+    const [customer, setCustomer] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-  function removeFromCart(itemId, quantity) {
-    setCart(prev => {
-      const key = `${itemId}-${quantity || "Full"}`;
-      const idx = prev.findIndex(c => `${c.id}-${c.quantity || "Full"}` === key);
-      if (idx < 0) return prev;
-      const updated = [...prev];
-      if (updated[idx].count <= 1) {
-        updated.splice(idx, 1);
-      } else {
-        updated[idx] = { ...updated[idx], count: updated[idx].count - 1 };
-      }
-      return updated;
-    });
-  }
 
-  function clearCart() { setCart([]); }
+    const handleSendOtp = async (phone) => {
+        setLoading(true);
+        const res = await customerApi.sendOtp(phone);
+        setLoading(false);
+        return res;
+    };
 
-  const total = cart.reduce((s, item) => s + item.price * item.count, 0);
-  const itemCount = cart.reduce((s, item) => s + item.count, 0);
+    const handleVerifyOtp = async ({ phone, otp, name }) => {
+        setLoading(true);
+        const res = await customerApi.verifyOtp({ phone, otp, name });
+        setLoading(false);
+        if (res.success && res.customer) {
+            setCustomer(res.customer);
+            return { success: true, customer: res.customer };
+        }
+        return { success: false, message: res.message };
+    };
 
-  return { cart, addToCart, removeFromCart, clearCart, total, itemCount };
+    const handleLogout = async () => {
+        await customerApi.logoutCustomer();
+        setCustomer(null);
+        return { success: true };
+    };
+
+
+    return { customer, setCustomer, loading, handleSendOtp, handleVerifyOtp, handleLogout };
 }
 
-export function useMyOrders() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const res = await customerApi.getMyOrders();
-      setOrders(res.data.orders || []);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 30000);
-    return () => clearInterval(interval);
-  }, [fetchOrders]);
+export function useCustomerOrders() {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-  return { orders, loading, error, refetch: fetchOrders };
-}
 
-export function usePlaceOrder() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const loadOrders = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        const res = await customerApi.getMyOrders();
+        if (res.success) {
+            setOrders(res.orders || []);
+        } else if (res.message !== "No Orders Found") {
+            setError(res.message);
+        }
+        setLoading(false);
+    }, []);
 
-  async function placeOrder(tableNo, items, paymentMode = "Cash") {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await customerApi.placeOrder(tableNo, items, paymentMode);
-      return { success: true, data: res.data };
-    } catch (err) {
-      const msg = err.response?.data?.message || "Failed to place order";
-      setError(msg);
-      return { success: false, message: msg };
-    } finally {
-      setLoading(false);
-    }
-  }
 
-  return { placeOrder, loading, error };
+    useEffect(() => {
+        loadOrders();
+        const interval = setInterval(loadOrders, 180000); // 3 minutes polling
+        return () => clearInterval(interval);
+    }, [loadOrders]);
+
+
+    const handlePlaceOrder = async ({ tableNo, items, paymentMode }) => {
+        setLoading(true);
+        const res = await customerApi.createOrder({
+            tableNo,
+            items,
+            paymentMode,
+            paymentStatus: "Pending"
+        });
+        setLoading(false);
+        if (res.success) {
+            await loadOrders();
+            return { success: true, order: res.order, razorpay: res.razorpay };
+        }
+        return { success: false, message: res.message };
+    };
+
+
+    return { orders, loading, error, handlePlaceOrder, reload: loadOrders };
 }

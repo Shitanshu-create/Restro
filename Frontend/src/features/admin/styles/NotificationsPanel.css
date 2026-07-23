@@ -1,0 +1,99 @@
+@import "../../../styles/globals.css";
+.notifications-card {
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.notif-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.card-section-title {
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-section);
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+.card-section-subtitle {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.notif-empty {
+  text-align: center;
+  padding: 24px;
+  font-size: var(--font-size-body);
+  color: var(--color-text-muted);
+}
+.notif-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-button);
+  border: 1px solid transparent;
+  transition: var(--transition-smooth);
+}
+.notif-info {
+  background-color: var(--color-background);
+  border-color: var(--color-border-light);
+}
+.notif-warning {
+  background-color: #FFF8F0;
+  border-color: #FDDCB5;
+}
+.notif-icon {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  color: var(--color-text-muted);
+}
+.notif-warning .notif-icon {
+  color: var(--color-warning);
+}
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.notif-title {
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.35;
+}
+.notif-detail {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+.notif-time {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+.notif-dismiss-btn {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+}
+.notif-dismiss-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-border-light);
+}

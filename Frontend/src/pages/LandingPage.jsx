@@ -1,140 +1,117 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import "../styles/globals.css";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import API_BASE_URL from "../config/env.js";
-import "./LandingPage.css";
 
-function LandingPage() {
+
+
+const LandingPage = ({ isLoggedIn, user }) => {
+
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const getDashboardPath = () => {
+    if (!user) return "/login";
+    if (user.role === "chef" || user.role === "waiter") return "/kitchen";
+    if (user.isAdmin || user.role === "admin") return "/admin";
+    return "/admin";
+  };
+  const targetPath = getDashboardPath();
 
-  useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/auth/getMe`, { withCredentials: true })
-      .then(res => setUser(res.data.user))
-      .catch(() => setUser(null));
-  }, []);
-
-  function handleDashboard() {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    if (user.isAdmin) {
-      navigate("/admin");
-    } else if (user.role === "chef" || user.role === "waiter") {
-      navigate("/kitchen");
-    } else {
-      navigate("/login");
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await axios.post(`${API_BASE_URL}/api/auth/logout`, {}, { withCredentials: true });
-      setUser(null);
-    } catch (e) {
-      setUser(null);
-    }
-  }
 
   return (
-    <div className="landing">
+    <div className="landing-shell">
+      {/* Navbar */}
       <nav className="landing-nav">
-        <div className="landing-nav__brand">
-          <span className="landing-nav__logo">🍽️</span>
-          <span className="landing-nav__name">Restro</span>
+        <div className="brand-logo-group">
+          <div className="brand-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 2L6 14" />
+              <path d="M6 2l12 14" />
+              <path d="M12 14v8" />
+            </svg>
+          </div>
+          <span className="brand-name">Reztro</span>
         </div>
-        <div className="landing-nav__actions">
-          {user ? (
-            <>
-              <span className="landing-nav__greeting">Hi, {user.name}</span>
-              <button className="btn-primary" onClick={handleDashboard}>
-                Go to Dashboard
-              </button>
-              <button className="btn-ghost" onClick={handleLogout}>Logout</button>
-            </>
+        <div className="nav-actions">
+          {isLoggedIn ? (
+            <button className="landing-btn-primary" onClick={() => navigate(targetPath)}>
+              Go to Dashboard
+            </button>
           ) : (
             <>
-              <button className="btn-ghost" onClick={() => navigate("/login")}>Login</button>
-              <button className="btn-primary" onClick={() => navigate("/register")}>Register</button>
+              <button className="landing-btn-secondary" onClick={() => navigate("/login")}>
+                Sign In
+              </button>
+              <button className="landing-btn-primary" onClick={() => navigate("/register")}>
+                Get Started
+              </button>
             </>
           )}
         </div>
       </nav>
-
-      <main className="landing-hero">
-        <div className="landing-hero__content">
-          <div className="landing-hero__badge">🚀 QR-Based Ordering System</div>
-          <h1 className="landing-hero__title">
-            Modern Restaurant<br />
-            <span className="landing-hero__title--accent">Management</span>
+      {/* Hero Section */}
+      <section className="landing-hero">
+        <div className="hero-content">
+          <span className="hero-pill-tag">✨ QR Dine-In & Staff Console</span>
+          <h1 className="hero-title">
+            Smart Restaurant Operations & Real-Time Checkout
           </h1>
-          <p className="landing-hero__subtitle">
-            Streamline your restaurant operations with our all-in-one platform.
-            QR ordering, kitchen display, and admin control — all in one place.
+          <p className="hero-subtitle">
+            Manage live table orders, staff shifts, cashless payments, and kitchen workflows seamlessly with Reztro.
           </p>
-          <div className="landing-hero__cta">
-            {user ? (
-              <button className="btn-primary btn-lg" onClick={handleDashboard}>
-                Go to Dashboard →
-              </button>
-            ) : (
-              <>
-                <button className="btn-primary btn-lg" onClick={() => navigate("/login")}>
-                  Staff Login →
-                </button>
-                <button className="btn-secondary btn-lg" onClick={() => navigate("/menu")}>
-                  View Menu
-                </button>
-              </>
-            )}
+          <div className="hero-cta-group">
+            <button
+              className="hero-btn-primary"
+              onClick={() => navigate(isLoggedIn ? targetPath : "/login")}
+            >
+              {isLoggedIn ? "Open Dashboard" : "Staff Console Login"}
+            </button>
+            <button
+              className="hero-btn-secondary"
+              onClick={() => navigate(isLoggedIn ? targetPath : "/register")}
+            >
+              Register New Restaurant
+            </button>
           </div>
         </div>
-
-        <div className="landing-hero__visual">
-          <div className="landing-card">
-            <div className="landing-card__icon">👨‍🍳</div>
-            <div className="landing-card__title">Kitchen Dashboard</div>
-            <div className="landing-card__desc">Real-time order management for chefs</div>
-          </div>
-          <div className="landing-card landing-card--offset">
-            <div className="landing-card__icon">📊</div>
-            <div className="landing-card__title">Admin Panel</div>
-            <div className="landing-card__desc">Full control over menu, staff & revenue</div>
-          </div>
-          <div className="landing-card">
-            <div className="landing-card__icon">📱</div>
-            <div className="landing-card__title">QR Ordering</div>
-            <div className="landing-card__desc">Customers order directly from their phone</div>
-          </div>
-        </div>
-      </main>
-
-      <section className="landing-features">
-        <h2 className="landing-features__title">Everything You Need</h2>
-        <div className="landing-features__grid">
-          {[
-            { icon: "⚡", title: "Real-time Orders", desc: "Kitchen sees orders instantly as customers place them" },
-            { icon: "💳", title: "Flexible Payments", desc: "Support for cash, UPI, and online payments via Razorpay" },
-            { icon: "👥", title: "Staff Management", desc: "Admin approval flow for chef and waiter accounts" },
-            { icon: "📈", title: "Revenue Analytics", desc: "Track daily revenue trends and top-selling items" },
-            { icon: "🍽️", title: "Menu Control", desc: "Add, edit, or hide menu items and categories instantly" },
-            { icon: "🔒", title: "Secure Sessions", desc: "JWT-based sessions with server-side token blacklisting" },
-          ].map((f, i) => (
-            <div key={i} className="landing-feature-card">
-              <div className="landing-feature-card__icon">{f.icon}</div>
-              <div className="landing-feature-card__title">{f.title}</div>
-              <div className="landing-feature-card__desc">{f.desc}</div>
+        {/* Feature Cards Grid */}
+        <div className="landing-features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+              </svg>
             </div>
-          ))}
+            <h3>Real-Time Live Queue</h3>
+            <p>Track incoming kitchen orders, table assignments, and preparation statuses instantly.</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M4 18v3M20 18v3M4 11h16M3 7h18M5 7v4M19 7v4" />
+              </svg>
+            </div>
+            <h3>Interactive Table Map</h3>
+            <p>Visual floor plan monitoring seated tables, active bills, and walk-in capacity in real time.</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
+            </div>
+            <h3>Cashless Payments</h3>
+            <p>Instant QR checkout ledger with staff tip distribution and automated settlement reporting.</p>
+          </div>
         </div>
       </section>
-
+      {/* Footer */}
       <footer className="landing-footer">
-        <p>© 2024 Restro. Built with ❤️ for modern restaurants.</p>
+        <p>© 2026 Reztro SaaS Inc. All rights reserved.</p>
       </footer>
     </div>
   );
-}
-
+};
 export default LandingPage;

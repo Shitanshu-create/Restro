@@ -1,37 +1,24 @@
-# Node modules
-node_modules/
-
-# Build output directories
-build/
-Dist/
-
-# Production source maps
-*.js.map
-
-# Log files
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
+pnpm-debug.log*
+lerna-debug.log*
 
-# OS generated files
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-
-# IDE/editor settings
-.idea/
-.vscode/
-*.sublime-workspace
-*.sublime-project
-
-# Environment variable files
-.env
-.env.*
-
-# Test coverage reports
-coverage/
-
-# Misc temporary files
-*.tmp
-*.bak
-*.swp
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

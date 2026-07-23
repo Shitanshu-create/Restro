@@ -1,0 +1,68 @@
+@import "../../../styles/globals.css";
+.stat-card {
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: var(--transition-smooth);
+}
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-light);
+}
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stat-card-title {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.stat-card-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-input);
+  background-color: var(--color-border-light);
+  color: var(--color-text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-card-value {
+  font-size: var(--font-size-stat-number);
+  font-weight: var(--font-weight-title);
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.stat-card-subtext {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.subtext-green {
+  color: var(--color-success);
+}
+.subtext-orange {
+  color: var(--color-primary);
+}
+.subtext-blue {
+  color: var(--color-info);
+}
+.subtext-muted {
+  color: var(--color-text-muted);
+}

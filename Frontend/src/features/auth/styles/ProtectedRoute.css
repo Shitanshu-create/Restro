@@ -1,0 +1,26 @@
+.auth-page-container {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--color-background);
+}
+
+.auth-wrapper {
+  width: min(100%, 360px);
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card-background);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.auth-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-section-heading);
+  font-weight: var(--font-weight-section);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}

@@ -1,0 +1,390 @@
+@import "../../../styles/globals.css";
+.customer-menu-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+/* Header */
+.customer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background-color: var(--color-card-background);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.cust-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cust-brand-icon {
+  width: 38px;
+  height: 38px;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-white);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cust-brand-name {
+  font-size: var(--font-size-heading);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+.cust-brand-sub {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+.cust-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.table-badge-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+}
+.table-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary);
+}
+.cart-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--radius-button);
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+.cart-trigger-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+.cart-badge-count {
+  background-color: var(--color-text-white);
+  color: var(--color-primary);
+  font-size: var(--font-size-caption);
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Success Banner */
+.order-success-banner {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  padding: 12px 24px;
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-success);
+}
+.order-success-banner button {
+  font-size: 20px;
+  color: var(--color-success);
+}
+/* Body Layout */
+.customer-menu-body {
+  display: flex;
+  flex: 1;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+/* Sidebar Categories */
+.category-sidebar {
+  width: 260px;
+  background-color: var(--color-card-background);
+  border-right: 1px solid var(--color-border);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 71px;
+  height: calc(100vh - 71px);
+}
+.cat-sidebar-label {
+  font-size: var(--font-size-caption);
+  font-weight: 800;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  padding: 0 8px;
+}
+.cat-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cat-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: left;
+  transition: var(--transition-smooth);
+}
+.cat-nav-btn:hover {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+.cat-nav-btn.active {
+  background-color: var(--color-primary-tint);
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+.cat-emoji {
+  font-size: 18px;
+}
+/* Dishes Main */
+.menu-dishes-main {
+  flex: 1;
+  padding: 24px 32px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.dishes-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.dish-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  width: clamp(240px, 35vw, 380px);
+  box-shadow: var(--shadow-sm);
+}
+.dish-search-box input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  width: 100%;
+}
+.diet-filter-pills {
+  display: flex;
+  gap: 6px;
+}
+.diet-pill {
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  transition: var(--transition-smooth);
+}
+.diet-pill:hover {
+  background-color: var(--color-background);
+}
+.diet-pill.active {
+  background-color: var(--color-text-primary);
+  color: var(--color-text-white);
+  border-color: var(--color-text-primary);
+}
+/* Dish Cards Grid */
+.dishes-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.dish-card {
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+}
+.dish-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.dish-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: var(--color-background);
+}
+.dish-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.popular-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: #FFD700;
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+.dish-info-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  justify-content: space-between;
+}
+.dish-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dish-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.veg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+.veg-dot.is-veg { background-color: var(--color-success); }
+.veg-dot.is-nonveg { background-color: var(--color-error); }
+.dish-name {
+  font-size: var(--font-size-card-title);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+.dish-price {
+  font-size: var(--font-size-heading);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.dish-desc {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+.dish-card-footer {
+  padding-top: 10px;
+}
+.add-item-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--radius-button);
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  font-size: var(--font-size-body);
+  font-weight: 800;
+  transition: var(--transition-smooth);
+}
+.add-item-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+.item-qty-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-primary-tint);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-button);
+  padding: 6px 12px;
+}
+.item-qty-stepper button {
+  font-size: var(--font-size-heading);
+  font-weight: 800;
+  color: var(--color-primary);
+  width: 24px;
+}
+.item-qty-stepper span {
+  font-size: var(--font-size-small);
+  font-weight: 800;
+  color: var(--color-primary);
+}
+/* Floating Bottom Cart Bar for Mobile */
+.mobile-floating-cart-bar {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-white);
+  padding: 12px 20px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+  align-items: center;
+  justify-content: space-between;
+  z-index: 99;
+}
+.floating-cart-text {
+  display: flex;
+  flex-direction: column;
+}
+.floating-cart-text span {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+.floating-cart-text strong {
+  font-size: var(--font-size-body);
+  font-weight: 800;
+}
+.floating-view-cart-btn {
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  padding: 8px 16px;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-small);
+  font-weight: 800;
+}
+/* Responsive */
+@media (max-width: 900px) {
+  .category-sidebar { display: none; }
+  .menu-dishes-main { padding: 18px 16px 80px; }
+  .mobile-floating-cart-bar { display: flex; }
+}

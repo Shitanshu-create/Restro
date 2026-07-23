@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
-const staffSchema = new mongoose.Schema({
+
+
+const StaffSchema = new mongoose.Schema({
     staffId: {
         type: String,
         required: true,
@@ -8,33 +10,43 @@ const staffSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true
+        required: true,
+    },
+    passwordHash: {
+        type: String,
+        default: null 
+    },
+    provider: {
+        type: String,
+        enum: ["local", "google", "github"],
+        default: "local" 
+    },
+    providerId: { 
+        type: String, 
+        default: null 
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: [true, "Email already exists"]
     },
-    passwordHash: {
-        type: String
-    },
-    role: {
-        type: String,
-        enum: ["admin", "chef", "waiter"],
-        default: "waiter"
-    },
-    isAdmin: {
+    isAdmin:{
         type: Boolean,
         default: false
+    },
+    role:{
+        type: String,
+        enum: ["admin", "chef", "waiter"],
+        required: true
     },
     isActive: {
         type: Boolean,
         default: false
-    },
-    provider: {
-        type: String,
-        default: "local"
     }
-}, { timestamps: true });
+}, { _id: true , timestamps: true });
 
-export default mongoose.model("Staff", staffSchema);
+
+const StaffModel = mongoose.model("Staff", StaffSchema);
+
+
+export default StaffModel;

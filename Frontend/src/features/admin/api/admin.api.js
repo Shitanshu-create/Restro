@@ -1,0 +1,216 @@
+import axios from "axios";
+import { env } from "../../../components/config/env.js";
+
+
+
+
+const api = axios.create({
+    baseURL: env.apiBaseUrl,
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" }
+});
+
+
+function getErrorMessage(err, fallback) {
+    return err.response?.data?.message || err.message || fallback;
+}
+
+
+
+
+// ── Tables ──────────────────────────────────────────────────────────────────
+export const getAllTables = async () => {
+    try {
+        const res = await api.get("/api/admin/getAllTables");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch tables") };
+    }
+};
+
+
+export const createTable = async (capacity) => {
+    try {
+        const res = await api.post("/api/admin/createTable", { capacity });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to create table") };
+    }
+};
+
+
+
+export const removeTable = async (tableNumber) => {
+    try {
+        const res = await api.delete("/api/admin/removeTable", { data: { tableNumber } });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove table") };
+    }
+};
+
+
+
+// ── Menu - Categories ────────────────────────────────────────────────────────
+export const fetchAllCategories = async () => {
+    try {
+        const res = await api.get("/api/admin/fetchAllCategories");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch categories") };
+    }
+};
+
+
+
+export const createCategory = async (name) => {
+    try {
+        const res = await api.post("/api/admin/createCategory", { name });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to create category") };
+    }
+};
+
+
+
+export const removeCategory = async (name) => {
+    try {
+        const res = await api.delete("/api/admin/removeCategory", { data: { name } });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove category") };
+    }
+};
+
+
+
+
+// ── Menu - Items ─────────────────────────────────────────────────────────────
+export const fetchAllItems = async () => {
+    try {
+        const res = await api.get("/api/admin/fetchAllItems");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch items") };
+    }
+};
+
+
+
+export const createItem = async ({ id, name, price, isVeg, isAvailable, image }) => {
+    try {
+        const res = await api.post("/api/admin/createItem", { id, name, price, isVeg, isAvailable, image });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to create item") };
+    }
+};
+
+
+
+export const removeItem = async ({ id, name }) => {
+    try {
+        const res = await api.delete("/api/admin/removeItem", { data: { id, name } });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove item") };
+    }
+};
+
+
+
+export const toggleItemAvailability = async ({ id, name }) => {
+    try {
+        const res = await api.patch("/api/admin/toggleItemAvailability", { id, name });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to toggle availability") };
+    }
+};
+
+
+
+export const addItemToCategory = async ({ itemId, itemName, categoryName }) => {
+    try {
+        const res = await api.post("/api/admin/addItemToCategory", { itemId, itemName, categoryName });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to assign item to category") };
+    }
+};
+
+
+
+export const removeItemFromCategory = async ({ itemId, itemName, categoryName }) => {
+    try {
+        const res = await api.post("/api/admin/removeItemFromCategory", { itemId, itemName, categoryName });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove item from category") };
+    }
+};
+
+
+
+
+// ── Orders ───────────────────────────────────────────────────────────────────
+export const getAllOrders = async () => {
+    try {
+        const res = await api.get("/api/admin/getAllOrders");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch orders") };
+    }
+};
+
+
+
+export const markCashPaid = async (orderId) => {
+    try {
+        const res = await api.patch(`/api/payment/markCashPaid/${orderId}`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to mark order as paid") };
+    }
+};
+
+
+export const updateOrderStatus = async (orderId) => {
+    try {
+        const res = await api.patch(`/api/kitchen/updateOrderStatus/${orderId}`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to update order status") };
+    }
+};
+
+
+// ── Staff ────────────────────────────────────────────────────────────────────
+export const getAllStaff = async () => {
+    try {
+        const res = await api.get("/api/auth/staff");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch staff") };
+    }
+};
+
+export const toggleStaffApproval = async (staffId) => {
+    try {
+        const res = await api.patch(`/api/auth/staff/${staffId}/approve`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to toggle staff approval") };
+    }
+};
+
+export const removeStaff = async (staffId) => {
+    try {
+        const res = await api.delete(`/api/auth/staff/${staffId}`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove staff") };
+    }
+};
+

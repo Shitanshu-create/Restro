@@ -1,127 +1,372 @@
-import { CategoryModel, MenuItemModel } from "../models/menu.model.js";
+import mongoose from "mongoose";
+import { ItemModel, CategoryModel } from "../models/menu.model.js";
 
-async function getAllMenuController(req, res, next) {
+
+
+
+
+/** 
+ * @desc    Create Category
+ * @route   POST /api/admin/createCategory
+ * @access  Private
+ */
+async function createCategoryController(req, res, next) {
+    try {
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: "Please Provide a Category Name" })
+        }
+        const existingCategory = await CategoryModel.findOne({ name });
+        if (existingCategory) {
+            return res.status(400).json({ message: "Category Already Exists" });
+        }
+        const newCategory = new CategoryModel({ name, items: [] });
+        await newCategory.save();
+        res.status(200).json({ success: true, message: "Category Created Successfully", category: { id: newCategory._id, name: newCategory.name, items: newCategory.items } });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description Create Food Item
+ * @route POST /api/admin/createItem
+ * @access Private
+ */
+async function createItemController(req, res, next) {
+    try {
+        const { id, name, price, isAvailable, isVeg, image } = req.body;
+        if (!id || !name || !price) {
+            return res.status(401).json({ message: "Please Provide All Fields" });
+        }
+        const existingItem = await ItemModel.findOne({ $or: [{ id }, { name }] });
+        if (existingItem) {
+            return res.status(400).json({ message: "Item already Exists" });
+        }
+        const newItem = new ItemModel({
+            id,
+            name,
+            price,
+            isAvailable,
+            isVeg,
+            image
+        });
+        await newItem.save();
+        return res.status(200).json({
+            success: true,
+            message: "Item listed successfully",
+            item: {
+                id: newItem.id,
+                name: newItem.name,
+                price: newItem.price,
+                isAvailable: newItem.isAvailable,
+                isVeg: newItem.isVeg,
+                image: newItem.image,
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description add an item to specific category
+ * @route POST /api/admin/addItemToCategory
+ * @access Private
+ */
+async function addItemToCategoryController(req, res, next) {
+    try {
+        const { itemId, itemName, categoryName } = req.body;
+        if (!itemId || !itemName || !categoryName) {
+            return res.status(401).json({ message: "Please Provide All Fields" });
+        }
+        const findCategory = await CategoryModel.findOne({ name: categoryName });
+        const findItem = await ItemModel.findOne({ id: itemId, name: itemName });
+        if (!findCategory) {
+            return res.status(400).json({ message: "Please Provide valid Category Name" });
+        }
+        if (!findItem) {
+            return res.status(400).json({ message: "Please Provide valid Id & Name Of the Item" });
+        }
+        const itemAlreadyInCategory = findCategory.items.some(
+            (item) => item.id === findItem.id && item.name === findItem.name
+        );
+        if (itemAlreadyInCategory) {
+            return res.status(400).json({ message: "Item Already Exists in this Category" });
+        }
+        const updatedCategoryItem = await CategoryModel.findOneAndUpdate(
+            { name: categoryName },
+            { $addToSet: { items: findItem } },
+            { new: true }
+        );
+        if (!updatedCategoryItem) {
+            return res.status(404).json({ success: false, message: "Category not Updated due to error." });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Food Item added successfully to the Category",
+            data: updatedCategoryItem
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description Remove a Category
+ * @route DELETE /api/admin/removeCategory
+ * @access Private
+ */
+async function removeCategoryController(req, res, next) {
+    try {
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: "Please Provide a Category Name" });
+        }
+        const existingCategory = await CategoryModel.findOne({ name });
+        if (!existingCategory) {
+            return res.status(400).json({ message: "Category Does not Exist" });
+        }
+        await CategoryModel.findOneAndDelete({ name });
+        return res.status(200).json({
+            success: true,
+            message: "Category Removed Successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description Remove a Food Item
+ * @route DELETE /api/admin/removeItem
+ * @access Private
+ */
+async function removeItemController(req, res, next) {
+    try {
+        const { id, name } = req.body;
+        if (!id || !name) {
+            return res.status(401).json({ message: "Please Provide All Fields" });
+        }
+        const existingItem = await ItemModel.findOne({ id, name });
+        if (!existingItem) {
+            return res.status(400).json({ message: "Item Does not Exist" });
+        }
+        await ItemModel.findOneAndDelete({ id, name });
+        await CategoryModel.updateMany(
+            { "items.id": id, "items.name": name },
+            { $pull: { items: { id, name } } }
+        );
+        return res.status(200).json({
+            success: true,
+            message: "Item Removed Successfully from Item List and all Categories"
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description remove an item from a specific category
+ * @route POST /api/admin/removeItemFromCategory
+ * @access Private
+ */
+async function removeItemFromCategoryController(req, res, next) {
+    try {
+        const { itemId, itemName, categoryName } = req.body;
+        if (!itemId || !itemName || !categoryName) {
+            return res.status(401).json({ message: "Please Provide All Fields" });
+        }
+        const findCategory = await CategoryModel.findOne({ name: categoryName });
+        if (!findCategory) {
+            return res.status(400).json({ message: "Please Provide valid Category Name" });
+        }
+        const itemExistsInCategory = findCategory.items.some(
+            (item) => item.id === Number(itemId) && item.name === itemName
+        );
+        if (!itemExistsInCategory) {
+            return res.status(400).json({ message: "Please Provide valid Id & Name Of the Item" });
+        }
+        const updatedCategoryItem = await CategoryModel.findOneAndUpdate(
+            { name: categoryName },
+            { $pull: { items: { id: Number(itemId), name: itemName } } },
+            { new: true }
+        );
+        if (!updatedCategoryItem) {
+            return res.status(404).json({ success: false, message: "Category not Updated due to error." });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Food Item removed successfully from the Category",
+            data: updatedCategoryItem
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+
+/**
+ * @description Fetch All Categories
+ * @route GET /api/admin/fetchAllCategories
+ * @access Private
+ */
+async function fetchAllCategoriesController(req, res, next) {
     try {
         const categories = await CategoryModel.find({});
-        res.status(200).json({ success: true, menu: categories });
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function addMenuItemController(req, res, next) {
-    try {
-        const { categoryName, name, price, isVeg, image } = req.body;
-
-        if (!categoryName || !name || !price) {
-            return res.status(400).json({ message: "Please provide categoryName, name, and price" });
+        if (!categories || categories.length === 0) {
+            return res.status(404).json({ message: "No Categories Found" });
         }
-
-        let category = await CategoryModel.findOne({ name: categoryName });
-        if (!category) {
-            category = new CategoryModel({ name: categoryName, items: [] });
-        }
-
-        const maxId = await getMaxItemId();
-        const newItem = {
-            id: maxId + 1,
-            name,
-            price: Number(price),
-            isVeg: isVeg !== undefined ? isVeg : true,
-            isAvailable: true,
-            image: image || ""
-        };
-
-        category.items.push(newItem);
-        await category.save();
-
-        res.status(201).json({ success: true, message: "Menu item added successfully", item: newItem });
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function getMaxItemId() {
-    const categories = await CategoryModel.find({});
-    let maxId = 0;
-    categories.forEach(cat => {
-        cat.items.forEach(item => {
-            if (item.id > maxId) maxId = item.id;
+        return res.status(200).json({
+            success: true,
+            message: "Categories Fetched Successfully",
+            categories
         });
-    });
-    return maxId;
-}
-
-async function updateMenuItemController(req, res, next) {
-    try {
-        const { itemId } = req.params;
-        const { name, price, isVeg, isAvailable, image } = req.body;
-
-        const category = await CategoryModel.findOne({ "items.id": Number(itemId) });
-        if (!category) {
-            return res.status(404).json({ message: "Menu item not found" });
-        }
-
-        const item = category.items.find(i => i.id === Number(itemId));
-        if (name !== undefined) item.name = name;
-        if (price !== undefined) item.price = Number(price);
-        if (isVeg !== undefined) item.isVeg = isVeg;
-        if (isAvailable !== undefined) item.isAvailable = isAvailable;
-        if (image !== undefined) item.image = image;
-
-        await category.save();
-
-        res.status(200).json({ success: true, message: "Menu item updated successfully", item });
     } catch (error) {
         next(error);
     }
 }
 
-async function deleteMenuItemController(req, res, next) {
+
+
+
+/**
+ * @description Fetch All Food Items
+ * @route GET /api/admin/fetchAllItems
+ * @access Private
+ */
+async function fetchAllItemsController(req, res, next) {
     try {
-        const { itemId } = req.params;
-
-        const category = await CategoryModel.findOne({ "items.id": Number(itemId) });
-        if (!category) {
-            return res.status(404).json({ message: "Menu item not found" });
+        const items = await ItemModel.find({});
+        if (!items || items.length === 0) {
+            return res.status(404).json({ message: "No Items Found" });
         }
-
-        category.items = category.items.filter(i => i.id !== Number(itemId));
-        await category.save();
-
-        res.status(200).json({ success: true, message: "Menu item deleted successfully" });
+        return res.status(200).json({
+            success: true,
+            message: "Items Fetched Successfully",
+            items
+        });
     } catch (error) {
         next(error);
     }
 }
 
-async function getTopSellingController(req, res, next) {
-    try {
-        const { OrderModel } = await import("../models/order.model.js");
-        const orders = await OrderModel.find({ paymentStatus: "Paid" });
 
-        const itemMap = {};
-        orders.forEach(order => {
-            order.items.forEach(item => {
-                if (!itemMap[item.name]) {
-                    itemMap[item.name] = { name: item.name, count: 0, revenue: 0 };
+
+
+/**
+ * @desc    Toggle Item Availability
+ * @route   PATCH /api/admin/toggleItemAvailability
+ * @access  Private
+ */
+async function toggleItemAvailabilityController(req, res, next) {
+    try {
+        const { id, name } = req.body;
+        if (!id || !name) {
+            return res.status(400).json({ message: "Please Provide All Fields" });
+        }
+        const existingItem = await ItemModel.findOne({ id, name });
+        if (!existingItem) {
+            return res.status(400).json({ message: "Item Does not Exist" });
+        }
+        existingItem.isAvailable = !existingItem.isAvailable;
+        await existingItem.save();
+        await CategoryModel.updateMany(
+            { "items.id": id, "items.name": name },
+            { $set: { "items.$.isAvailable": existingItem.isAvailable } }
+        );
+        return res.status(200).json({
+            success: true,
+            message: `Item marked as ${existingItem.isAvailable ? "Available" : "Unavailable"}`,
+            item: {
+                id: existingItem.id,
+                name: existingItem.name,
+                isAvailable: existingItem.isAvailable
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+/**
+ * @desc    Get public full menu for customers
+ * @route   GET /api/menu/getMenu
+ * @access  Public
+ */
+async function getMenuController(req, res, next) {
+    try {
+        const { CategoryModel, ItemModel } = await import("../models/menu.model.js");
+        let categories = await CategoryModel.find({}).lean();
+        const allItems = await ItemModel.find({}).lean();
+        if ((!categories || categories.length === 0) && allItems && allItems.length > 0) {
+            categories = [{
+                _id: "uncategorized",
+                name: "All Dishes",
+                items: allItems
+            }];
+        } else if (categories && categories.length > 0 && allItems && allItems.length > 0) {
+            // Find items in ItemModel that are not embedded in any category's items array
+            const categoryItemIds = new Set(
+                categories.flatMap(c => (c.items || []).map(i => i.id))
+            );
+            const unassignedItems = allItems.filter(i => !categoryItemIds.has(i.id));
+            if (unassignedItems.length > 0) {
+                let defaultCategory = categories.find(c => c.name.toLowerCase() === "other" || c.name.toLowerCase() === "dishes");
+                if (!defaultCategory) {
+                    defaultCategory = { _id: "default_cat", name: "Dishes", items: [] };
+                    categories.push(defaultCategory);
                 }
-                itemMap[item.name].count += item.count || 1;
-                itemMap[item.name].revenue += item.price * (item.count || 1);
-            });
+                defaultCategory.items.push(...unassignedItems);
+            }
+        }
+        res.status(200).json({
+            success: true,
+            message: "Menu fetched successfully",
+            categories: categories || []
         });
-
-        const sorted = Object.values(itemMap).sort((a, b) => b.count - a.count).slice(0, 5);
-        res.status(200).json({ success: true, topSelling: sorted });
     } catch (error) {
         next(error);
     }
 }
+
+
 
 export default {
-    getAllMenuController,
-    addMenuItemController,
-    updateMenuItemController,
-    deleteMenuItemController,
-    getTopSellingController
+    createCategoryController,
+    createItemController,
+    addItemToCategoryController,
+    removeCategoryController,
+    removeItemController,
+    removeItemFromCategoryController,
+    fetchAllCategoriesController,
+    fetchAllItemsController,
+    toggleItemAvailabilityController,
+    getMenuController
 };

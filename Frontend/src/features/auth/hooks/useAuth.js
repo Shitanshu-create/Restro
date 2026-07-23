@@ -1,64 +1,65 @@
-import { useState } from "react";
-import authApi from "../api/authApi.js";
+import { useContext } from "react";
+import { AuthContext } from "../services/authContext.jsx";
+import { loginUser, registerUser, logoutUser } from "../api/auth.api.js";
 
-export function useLogin() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  async function login(email, password) {
-    setLoading(true);
-    setError(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  const { user, setUser, loading, setLoading } = context;
+
+  
+  const handleRegister = async ({ name, email, password, role = "waiter" }) => {
     try {
-      const res = await authApi.login(email, password);
-      return res.data;
+      const userData = { name, email, password, role };
+      const res = await registerUser(userData);
+      if (res.success) {
+        if (res.user && res.user.isActive) {
+          setUser(res.user);
+        }
+        return { success: true, message: res.message, user: res.user };
+      }
+
+      return { success: false, message: res.message };
+
     } catch (err) {
-      const msg = err.response?.data?.message || "Login failed. Please try again.";
-      setError(msg);
-      return null;
-    } finally {
-      setLoading(false);
+      console.error("Register hook failed:", err);
+      return { success: false, message: "An unexpected error occurred" };
     }
   }
 
-  return { login, loading, error, setError };
-}
 
-export function useRegister() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-
-  async function register(name, email, password, role) {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+  const handleLogin = async ({ email, password }) => {
     try {
-      const res = await authApi.register(name, email, password, role);
-      setSuccess(res.data.message);
-      return res.data;
+      const userData = {email, password}
+      const res = await loginUser(userData);
+      if (res.success && res.user) {
+        sessionStorage.clear();
+        setUser(res.user);
+        return { success: true, user: res.user };;
+      }
+      return { success: false, message: res.message };
     } catch (err) {
-      const msg = err.response?.data?.message || "Registration failed. Please try again.";
-      setError(msg);
-      return null;
-    } finally {
-      setLoading(false);
+      console.error("Login hook failed:", err);
+      return { success: false, message: "An unexpected error occurred" };
     }
   }
 
-  return { register, loading, error, success, setError };
-}
 
-export function useLogout() {
-  const [loading, setLoading] = useState(false);
-
-  async function logout() {
-    setLoading(true);
+  const handleLogout = async () => {
     try {
-      await authApi.logout();
-    } finally {
-      setLoading(false);
+      await logoutUser();
+      sessionStorage.clear();
+      setUser(null);
+      return { success: true };
+    } catch (err) {
+      console.error("Logout failed:", err);
+      setUser(null);
+      return { success: false, message: "Logout may not have completed on server" };
     }
   }
 
-  return { logout, loading };
+
+
+  return { user, loading, handleLogin, handleRegister, handleLogout };
 }

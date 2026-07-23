@@ -2,36 +2,31 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 dotenv.config({ path: path.join(__dirname, "../../.env") });
-
 const requiredEnv = {
     MONGODB_URI: process.env.MONGODB_URI,
     JWT_SECRET: process.env.JWT_SECRET || process.env.jwtSecret,
 };
-
 const missingEnv = Object.entries(requiredEnv)
     .filter(([, value]) => !value)
     .map(([key]) => key);
-
 if (missingEnv.length > 0) {
     throw new Error(`Missing required environment variables: ${missingEnv.join(", ")}`);
 }
-
 const parseBoolean = (value, fallback) => {
     if (value === undefined || value === null) return fallback;
     const clean = String(value).trim().toLowerCase();
     return clean === "true";
 };
-
 const parseInteger = (value, fallback) => {
     if (value === undefined || value === null) return fallback;
     const parsed = Number.parseInt(String(value).trim(), 10);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
-
 const env = {
     nodeEnv: typeof process.env.NODE_ENV === "string" ? process.env.NODE_ENV.trim() : (process.env.NODE_ENV || "development"),
     port: parseInteger(process.env.PORT, 3000),
@@ -41,7 +36,7 @@ const env = {
     jsonLimit: typeof process.env.JSON_LIMIT === "string" ? process.env.JSON_LIMIT.trim() : (process.env.JSON_LIMIT || "10mb"),
     rateLimit: {
         windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-        max: parseInteger(process.env.RATE_LIMIT_MAX, 50000)
+        max: parseInteger(process.env.RATE_LIMIT_MAX, 10000)
     },
     backendUrl: typeof process.env.BACKEND_URL === "string" ? process.env.BACKEND_URL.trim() : (process.env.BACKEND_URL || `http://localhost:${parseInteger(process.env.PORT, 3000)}`),
     cookie: {
@@ -70,5 +65,4 @@ const env = {
         webhookSecret: typeof process.env.RAZORPAY_WEBHOOK_SECRET === "string" ? process.env.RAZORPAY_WEBHOOK_SECRET.trim() : "",
     },
 };
-
 export default env;

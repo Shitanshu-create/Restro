@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
 import { OrderModel } from "../models/order.model.js";
-
+/**
+ * @desc    Get all pending (unfinished) orders for the kitchen
+ * @route   GET /api/kitchen/getPendingOrders
+ * @access  Private 
+ */
 async function getPendingOrdersController(req, res, next) {
     try {
         const pendingOrders = await OrderModel.find({ orderStatus: "Preparing" }).sort({ createdAt: 1 });
-
         if (!pendingOrders || pendingOrders.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -12,7 +15,6 @@ async function getPendingOrdersController(req, res, next) {
                 orders: []
             });
         }
-
         const formattedOrders = pendingOrders.map((order) => ({
             orderId: order.orderId,
             customerId: order.customerId,
@@ -26,39 +28,35 @@ async function getPendingOrdersController(req, res, next) {
             paidAt: order.paidAt || null,
             createdAt: order.createdAt
         }));
-
         res.status(200).json({
             success: true,
             message: "Pending Orders Fetched Successfully",
             orders: formattedOrders
         });
-
     } catch (error) {
         next(error);
     }
 }
-
+/**
+ * @desc    Update order status (e.g. Preparing -> Ready)
+ * @route   PATCH /api/kitchen/updateOrderStatus/:orderId
+ * @access  Private (staff/kitchen)
+ */
 async function updateOrderStatusController(req, res, next) {
     try {
         const { orderId } = req.params;
-
         if (!orderId) {
             return res.status(400).json({ message: "Please Provide an Order Id" });
         }
-
         const existingOrder = await OrderModel.findOne({ orderId: Number(orderId) });
-
         if (!existingOrder) {
             return res.status(400).json({ message: "Order Does not Exist" });
         }
-
         if (existingOrder.orderStatus === "Ready") {
             return res.status(400).json({ message: "Order is Already Marked Ready" });
         }
-
         existingOrder.orderStatus = "Ready";
         await existingOrder.save();
-
         res.status(200).json({
             success: true,
             message: "Order Marked as Ready",
@@ -68,16 +66,19 @@ async function updateOrderStatusController(req, res, next) {
                 orderStatus: existingOrder.orderStatus
             }
         });
-
     } catch (error) {
         next(error);
     }
 }
-
+/**
+ * @desc    Get all Ready orders for the waiter to deliver
+ * @route   GET /api/waiter/getReadyOrders
+ * @access  Private (staff/waiter)
+ */
 async function getReadyOrdersController(req, res, next) {
     try {
-        const readyOrders = await OrderModel.find({ orderStatus: "Ready" }).sort({ createdAt: 1 });
-
+        const readyOrders = await OrderModel.find({ orderStatus: "Ready" })
+            .sort({ createdAt: 1 }); // oldest-ready first
         if (!readyOrders || readyOrders.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -85,7 +86,6 @@ async function getReadyOrdersController(req, res, next) {
                 orders: []
             });
         }
-
         const formattedOrders = readyOrders.map((order) => ({
             orderId: order.orderId,
             customerId: order.customerId,
@@ -99,16 +99,13 @@ async function getReadyOrdersController(req, res, next) {
             paidAt: order.paidAt || null,
             createdAt: order.createdAt
         }));
-
         res.status(200).json({
             success: true,
             message: "Ready Orders Fetched Successfully",
             orders: formattedOrders
         });
-
     } catch (error) {
         next(error);
     }
 }
-
-export default { getPendingOrdersController, updateOrderStatusController, getReadyOrdersController };
+export default { getPendingOrdersController, updateOrderStatusController, getReadyOrdersController }

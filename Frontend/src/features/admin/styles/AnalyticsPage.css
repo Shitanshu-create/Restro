@@ -1,0 +1,270 @@
+@import "../../../styles/globals.css";
+.analytics-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 28px 40px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+/* Card Base */
+.analytics-card {
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* Top row: 2 side-by-side charts */
+.analytics-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+/* Card header layout */
+.analytics-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.analytics-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.analytics-card-label {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+.analytics-big-stat {
+  font-size: var(--font-size-stat-number);
+  font-weight: var(--font-weight-title);
+  color: var(--color-text-primary);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.analytics-stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  padding: 3px 0;
+}
+.analytics-stat-badge.positive {
+  color: var(--color-success);
+}
+/* Period Toggle */
+.period-toggle-group {
+  display: flex;
+  background-color: var(--color-background);
+  padding: 3px;
+  border-radius: var(--radius-input);
+  gap: 2px;
+}
+.period-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: var(--transition-smooth);
+}
+.period-btn:hover {
+  color: var(--color-text-primary);
+}
+.period-btn.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+}
+/* SVG Sparkline */
+.analytics-sparkline {
+  width: 100%;
+  height: 160px;
+  display: block;
+  border-radius: var(--radius-sm);
+}
+.analytics-x-labels {
+  display: flex;
+  justify-content: space-between;
+}
+.analytics-x-labels span {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+/* Upsell card extra row */
+.analytics-upsell-card .analytics-card-header {
+  align-items: flex-end;
+}
+.upsell-stats-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.upsell-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.upsell-stat-label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.upsell-stat-value {
+  font-size: var(--font-size-heading);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+}
+/* Bottom row: 2 cards */
+.analytics-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+/* Section title (inside bottom cards) */
+.analytics-section-title {
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-section);
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+.analytics-section-subtitle {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+/* Best Selling Category */
+.bsc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.bsc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bsc-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 90px 120px;
+  align-items: center;
+  gap: 14px;
+}
+.bsc-rank {
+  font-size: var(--font-size-body);
+  font-weight: 800;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.bsc-bar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bsc-bar-track {
+  height: 6px;
+  background-color: var(--color-border-light);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.bsc-bar-fill {
+  height: 100%;
+  background-color: var(--color-text-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.6s ease;
+}
+.bsc-name {
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.bsc-revenue-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.bsc-revenue {
+  font-size: var(--font-size-body);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.bsc-orders {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+/* Worst Selling Items */
+.wsi-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.needs-attention-badge {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+}
+.wsi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wsi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-smooth);
+  gap: 12px;
+}
+.wsi-row:hover {
+  background-color: var(--color-background);
+}
+.wsi-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wsi-name {
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.wsi-meta {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+.wsi-change {
+  font-size: var(--font-size-body);
+  font-weight: 800;
+  color: var(--color-error);
+  flex-shrink: 0;
+}
+/* Responsive */
+@media (max-width: 1100px) {
+  .analytics-top-row { grid-template-columns: 1fr; }
+  .analytics-bottom-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .analytics-page { padding: 18px 16px 32px; gap: 16px; }
+  .bsc-row { grid-template-columns: 20px 1fr 90px; }
+  .bsc-revenue-col { display: none; }
+}

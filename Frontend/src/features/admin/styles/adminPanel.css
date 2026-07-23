@@ -1,0 +1,33 @@
+@import "../../../styles/globals.css";
+
+
+/* Full viewport shell */
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  width: 100%;
+}
+
+/* Content area to the right of sidebar */
+.admin-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--layout-sidebar-width);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Scrollable page area */
+.admin-main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 900px) {
+  .admin-content-area {
+    margin-left: 0;
+  }
+}

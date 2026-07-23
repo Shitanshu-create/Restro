@@ -1,55 +1,51 @@
 import { useState, useEffect, useCallback } from "react";
-import kitchenApi from "../api/kitchenApi.js";
+import * as kitchenApi from "../api/kitchen.api.js";
 
-export function useKitchenOrders() {
-  const [pendingOrders, setPendingOrders] = useState([]);
-  const [readyOrders, setReadyOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const [pendingRes, readyRes] = await Promise.all([
-        kitchenApi.getPendingOrders(),
-        kitchenApi.getReadyOrders(),
-      ]);
-      setPendingOrders(pendingRes.data.orders || []);
-      setReadyOrders(readyRes.data.orders || []);
-      setError(null);
-    } catch (err) {
-      if (err.response?.status !== 429) {
-        setError(err.response?.data?.message || "Failed to load orders");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 30000);
-    return () => clearInterval(interval);
-  }, [fetchOrders]);
 
-  async function markReady(orderId) {
-    try {
-      await kitchenApi.updateOrderStatus(orderId);
-      await fetchOrders();
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.response?.data?.message || "Failed to mark ready" };
-    }
-  }
+export function useKitchen() {
+    const [pendingOrders, setPendingOrders] = useState([]);
+    const [readyOrders, setReadyOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const loadOrders = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        const [pendingRes, readyRes] = await Promise.all([
+            kitchenApi.getPendingOrders(),
+            kitchenApi.getReadyOrders()
+        ]);
+        if (pendingRes.success) setPendingOrders(pendingRes.orders || []);
+        if (readyRes.success) setReadyOrders(readyRes.orders || []);
+        if (!pendingRes.success) setError(pendingRes.message);
+        setLoading(false);
+    }, []);
 
-  async function markPaid(orderId) {
-    try {
-      await kitchenApi.markCashPaid(orderId);
-      await fetchOrders();
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.response?.data?.message || "Failed to mark as paid" };
-    }
-  }
 
-  return { pendingOrders, readyOrders, loading, error, fetchOrders, markReady, markPaid };
+
+
+    useEffect(() => {
+        loadOrders();
+        const interval = setInterval(loadOrders, 30000);
+        return () => clearInterval(interval);
+    }, [loadOrders]);
+    const handleMarkReady = async (orderId) => {
+        const res = await kitchenApi.updateOrderStatus(orderId);
+        if (res.success) await loadOrders();
+        return res;
+    };
+    const handleMarkPaid = async (orderId) => {
+        const res = await kitchenApi.markCashPaid(orderId);
+        if (res.success) await loadOrders();
+        return res;
+    };
+    const allOrders = [
+        ...pendingOrders.map((o) => ({ ...o, orderStatus: "Preparing" })),
+        ...readyOrders.map((o) => ({ ...o, orderStatus: "Ready" }))
+    ];
+
+
+
+    return { pendingOrders, readyOrders, allOrders, loading, error, handleMarkReady, handleMarkPaid, reload: loadOrders };
 }

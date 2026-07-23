@@ -1,0 +1,102 @@
+.otp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.otp-modal-card {
+  background: var(--color-bg-card, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.otp-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--color-text-muted, #64748b);
+}
+.otp-header h2 {
+  font-size: var(--font-size-lg, 1.25rem);
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--color-text-title, #0f172a);
+}
+.otp-header p {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-text-body, #64748b);
+  margin-bottom: 20px;
+}
+.otp-error-msg {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: var(--font-size-sm, 0.875rem);
+  margin-bottom: 16px;
+}
+.otp-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.otp-field-group label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--color-text-title, #334155);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.otp-field-group input {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 10px;
+  font-size: var(--font-size-base, 1rem);
+  outline: none;
+}
+.otp-field-group input:focus {
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.otp-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-base, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.otp-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.otp-back-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #64748b);
+  font-size: var(--font-size-sm, 0.875rem);
+  margin-top: 14px;
+  cursor: pointer;
+}
