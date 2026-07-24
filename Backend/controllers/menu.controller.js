@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ItemModel, CategoryModel } from "../models/menu.model.js";
+import { MenuItemModel, CategoryModel } from "../models/menu.model.js";
 
 
 
@@ -43,11 +43,11 @@ async function createItemController(req, res, next) {
         if (!id || !name || !price) {
             return res.status(401).json({ message: "Please Provide All Fields" });
         }
-        const existingItem = await ItemModel.findOne({ $or: [{ id }, { name }] });
+        const existingItem = await MenuItemModel.findOne({ $or: [{ id }, { name }] });
         if (existingItem) {
             return res.status(400).json({ message: "Item already Exists" });
         }
-        const newItem = new ItemModel({
+        const newItem = new MenuItemModel({
             id,
             name,
             price,
@@ -89,7 +89,7 @@ async function addItemToCategoryController(req, res, next) {
             return res.status(401).json({ message: "Please Provide All Fields" });
         }
         const findCategory = await CategoryModel.findOne({ name: categoryName });
-        const findItem = await ItemModel.findOne({ id: itemId, name: itemName });
+        const findItem = await MenuItemModel.findOne({ id: itemId, name: itemName });
         if (!findCategory) {
             return res.status(400).json({ message: "Please Provide valid Category Name" });
         }
@@ -164,11 +164,11 @@ async function removeItemController(req, res, next) {
         if (!id || !name) {
             return res.status(401).json({ message: "Please Provide All Fields" });
         }
-        const existingItem = await ItemModel.findOne({ id, name });
+        const existingItem = await MenuItemModel.findOne({ id, name });
         if (!existingItem) {
             return res.status(400).json({ message: "Item Does not Exist" });
         }
-        await ItemModel.findOneAndDelete({ id, name });
+        await MenuItemModel.findOneAndDelete({ id, name });
         await CategoryModel.updateMany(
             { "items.id": id, "items.name": name },
             { $pull: { items: { id, name } } }
@@ -260,7 +260,7 @@ async function fetchAllCategoriesController(req, res, next) {
  */
 async function fetchAllItemsController(req, res, next) {
     try {
-        const items = await ItemModel.find({});
+        const items = await MenuItemModel.find({});
         if (!items || items.length === 0) {
             return res.status(404).json({ message: "No Items Found" });
         }
@@ -288,7 +288,7 @@ async function toggleItemAvailabilityController(req, res, next) {
         if (!id || !name) {
             return res.status(400).json({ message: "Please Provide All Fields" });
         }
-        const existingItem = await ItemModel.findOne({ id, name });
+        const existingItem = await MenuItemModel.findOne({ id, name });
         if (!existingItem) {
             return res.status(400).json({ message: "Item Does not Exist" });
         }
@@ -322,9 +322,9 @@ async function toggleItemAvailabilityController(req, res, next) {
  */
 async function getMenuController(req, res, next) {
     try {
-        const { CategoryModel, ItemModel } = await import("../models/menu.model.js");
+        const { CategoryModel, MenuItemModel } = await import("../models/menu.model.js");
         let categories = await CategoryModel.find({}).lean();
-        const allItems = await ItemModel.find({}).lean();
+        const allItems = await MenuItemModel.find({}).lean();
         if ((!categories || categories.length === 0) && allItems && allItems.length > 0) {
             categories = [{
                 _id: "uncategorized",
@@ -332,7 +332,7 @@ async function getMenuController(req, res, next) {
                 items: allItems
             }];
         } else if (categories && categories.length > 0 && allItems && allItems.length > 0) {
-            // Find items in ItemModel that are not embedded in any category's items array
+            // Find items in MenuItemModel that are not embedded in any category's items array
             const categoryItemIds = new Set(
                 categories.flatMap(c => (c.items || []).map(i => i.id))
             );

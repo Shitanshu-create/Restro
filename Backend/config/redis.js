@@ -1,10 +1,26 @@
+import Redis from "ioredis";
+import env from "./env.js";
+
 let redisClient = null;
 
 try {
-    // Optional Redis connection wrapper
-    redisClient = null;
-} catch (error) {
-    redisClient = null;
+    redisClient = new Redis(env.redisUrl, {
+        maxRetriesPerRequest: 3,
+        retryStrategy(times) {
+            // Wait up to 3 seconds between retries
+            return Math.min(times * 100, 3000);
+        }
+    });
+
+    redisClient.on("connect", () => {
+        console.log("Connected to Redis");
+    });
+
+    redisClient.on("error", (error) => {
+        console.error("Redis connection error:", error.message);
+    });
+} catch (err) {
+    console.error("Failed to initialize Redis client:", err);
 }
 
 export default redisClient;
