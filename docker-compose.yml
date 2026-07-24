@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # mongodb:
+  #   image: mongo:latest
+  #   container_name: restro_mongodb
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo_data:/data/db
+  #   environment:
+  #     MONGO_INITDB_DATABASE: restro
+
+  redis:
+    image: redis:alpine
+    container_name: restro_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # backend:
+  #   build:
+  #     context: ./Backend
+  #     dockerfile: Dockerfile
+  #   container_name: restro_backend
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - MONGODB_URI=mongodb://mongodb:27017/restro
+  #     - PORT=3000
+  #     - CORS_ORIGIN=http://localhost:5173
+  #     - BACKEND_URL=http://localhost:3000
+  #     - REDIS_URL=redis://redis:6379
+  #     - NODE_ENV=development
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #   volumes:
+  #     - ./Backend:/app
+  #     - /app/node_modules
+
+  # frontend:
+  #   build:
+  #     context: ./Frontend
+  #     dockerfile: Dockerfile
+  #   container_name: restro_frontend
+  #   restart: always
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - VITE_API_BASE_URL=http://localhost:3000
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./Frontend:/app
+  #     - /app/node_modules
+
+volumes:
+  # mongo_data:
+  redis_data:
