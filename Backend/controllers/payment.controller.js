@@ -152,7 +152,7 @@ async function paymentWebhookController(req, res, next) {
 async function markCashPaidController(req, res, next) {
     try {
         const { orderId } = req.params;
-        const staffId = req.user?.staffId || req.user?.name || "Staff";
+        const staffId = req.user?.name || req.user?.staffId || "Staff";
         if (!orderId) {
             return res.status(400).json({ message: "Please provide orderId" });
         }

@@ -166,6 +166,22 @@
   font-size: var(--font-size-caption);
   color: var(--color-text-muted);
 }
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-input);
+  background-color: var(--color-border-light);
+  color: var(--color-text-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+.logout-btn:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
 .theme-toggle-btn {
   width: 36px;
   height: 36px;
@@ -175,6 +191,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition-smooth);
 }
 .theme-toggle-btn:hover {
   background-color: var(--color-border);

@@ -111,20 +111,30 @@ async function removeTableController(req, res, next) {
 async function getAllOrdersController(req, res, next) {
     try {
         const { OrderModel } = await import("../models/order.model.js");
-        const orders = await OrderModel.find({}).sort({ createdAt: -1 });
+        const { CustomerModel } = await import("../models/customers.model.js");
+        const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+
+        const customerIds = [...new Set(orders.map(o => o.customerId).filter(Boolean))];
+        const customers = await CustomerModel.find({ customerId: { $in: customerIds } }, "customerId name").lean();
+        const customerMap = new Map(customers.map(c => [c.customerId, c.name]));
+
         res.status(200).json({
             success: true,
             message: "Orders Fetched Successfully",
             orders: orders.map((order) => ({
                 orderId: order.orderId,
                 customerId: order.customerId,
+                customerName: order.customerName || customerMap.get(order.customerId) || order.customerId,
                 tableNo: order.tableNo,
                 items: order.items,
                 amount: order.amount,
                 orderStatus: order.orderStatus,
                 paymentStatus: order.paymentStatus,
                 paymentMode: order.paymentMode,
+                paidBy: order.paidBy || null,
+                paidAt: order.paidAt || null,
                 razorpayOrderId: order.razorpayOrderId || null,
+                razorpayPaymentId: order.razorpayPaymentId || null,
                 createdAt: order.createdAt
             }))
         });

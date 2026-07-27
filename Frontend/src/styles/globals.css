@@ -107,6 +107,18 @@ button, input, select, textarea {
   font-family: var(--font-family-base);
 }
 
+button {
+  outline: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -116,3 +128,26 @@ a {
   display: flex;
   flex-direction: column;
 }
+
+[data-theme="dark"] {
+  --color-background: #0F0F0F;
+  --color-card-background: #1A1A1A;
+  --color-sidebar-background: #141414;
+  --color-secondary-background: #181818;
+  --color-border: #2A2A2A;
+  --color-border-light: #222222;
+  --color-input-background: #1E1E1E;
+  
+  --color-text-primary: #F0F0F0;
+  --color-text-body: #D0D0D0;
+  --color-text-secondary: #A0A0A0;
+  --color-text-muted: #606060;
+  
+  --color-primary-tint: #2A1A0A;
+  --color-primary-tint-hover: #3A2010;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+

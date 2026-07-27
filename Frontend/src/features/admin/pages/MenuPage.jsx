@@ -17,6 +17,20 @@ const MenuPage = () => {
   const [actionError, setActionError] = useState(null);
 
 
+  const [itemImage, setItemImage] = useState("");
+  const [editingImageItem, setEditingImageItem] = useState(null);
+  const [newImageUrl, setNewImageUrl] = useState("");
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setItemImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const addItem = async (event) => {
     event.preventDefault();
     setActionError(null);
@@ -26,15 +40,32 @@ const MenuPage = () => {
       name: String(formData.get("name") || ""),
       price: Number(formData.get("price") || 0),
       isVeg: formData.get("type") === "Veg",
-      isAvailable: formData.get("available") === "on"
+      isAvailable: formData.get("available") === "on",
+      image: itemImage
     };
-
 
     const res = await handleCreateItem(newItem);
     if (res.success) {
+      setItemImage("");
       setActiveModal(null);
     } else {
       setActionError(res.message || "Failed to create item");
+    }
+  };
+
+  const handleSaveImageUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingImageItem) return;
+    const res = await handleUpdateItemImage({
+      id: editingImageItem.id,
+      name: editingImageItem.name,
+      image: newImageUrl
+    });
+    if (res.success) {
+      setEditingImageItem(null);
+      setNewImageUrl("");
+    } else {
+      setActionError(res.message || "Failed to update item image");
     }
   };
   const addCategory = async (event) => {
@@ -168,13 +199,33 @@ const MenuPage = () => {
                 {category.items && category.items.map((item) => (
                   <div key={item.id} className="menu-item-card-row">
                     <div className="item-main-info">
-                      <div className="item-title-row">
-                        <span className={`veg-dot ${item.isVeg ? "is-veg" : "is-nonveg"}`} />
-                        <strong className="item-title">{item.name} (ID: {item.id})</strong>
+                      <div className="item-title-row" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "36px", height: "36px", borderRadius: "6px", background: "var(--color-border-light)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>🍽️</div>
+                        )}
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span className={`veg-dot ${item.isVeg ? "is-veg" : "is-nonveg"}`} />
+                            <strong className="item-title">{item.name} (ID: {item.id})</strong>
+                          </div>
+                          <span className="item-price-text">${item.price.toFixed(2)}</span>
+                        </div>
                       </div>
-                      <span className="item-price-text">${item.price.toFixed(2)}</span>
                     </div>
                     <div className="item-actions-right">
+                      <button
+                        className="item-remove-btn"
+                        type="button"
+                        onClick={() => {
+                          setEditingImageItem(item);
+                          setNewImageUrl(item.image || "");
+                        }}
+                        title="Change Photo"
+                      >
+                        🖼️ Photo
+                      </button>
                       <button
                         className={`avail-badge ${item.isAvailable ? "in-stock" : "out-of-stock"}`}
                         onClick={() => handleToggleAvailability({ id: item.id, name: item.name })}
@@ -244,6 +295,31 @@ const MenuPage = () => {
                     <option value="Non-veg">Non-veg</option>
                   </select>
                 </div>
+                <div className="form-group">
+                  <label>Item Photo (Upload File)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    style={{ fontSize: "13px" }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Or Paste Image URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={itemImage.startsWith("data:") ? "" : itemImage}
+                    onChange={(e) => setItemImage(e.target.value.trim())}
+                  />
+                  {itemImage && (
+                    <img
+                      src={itemImage}
+                      alt="Preview"
+                      style={{ width: "60px", height: "60px", borderRadius: "8px", objectFit: "cover", marginTop: "8px" }}
+                    />
+                  )}
+                </div>
                 <div className="form-check-group">
                   <input name="available" type="checkbox" id="avail-check" defaultChecked />
                   <label htmlFor="avail-check">Available for ordering</label>
@@ -265,6 +341,62 @@ const MenuPage = () => {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Item Image Modal */}
+      {editingImageItem && (
+        <div className="modal-backdrop" onClick={() => setEditingImageItem(null)}>
+          <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Change Photo for {editingImageItem.name}</h3>
+              <button className="modal-close-btn" onClick={() => setEditingImageItem(null)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <form className="modal-form" onSubmit={handleSaveImageUpdate}>
+              <div className="form-group">
+                <label>Upload New Photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onloadend = () => setNewImageUrl(reader.result);
+                    reader.readAsDataURL(file);
+                  }}
+                  style={{ fontSize: "13px" }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Or Image URL</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                />
+              </div>
+              {newImageUrl && (
+                <div style={{ textAlign: "center", margin: "10px 0" }}>
+                  <img
+                    src={newImageUrl}
+                    alt="Preview"
+                    style={{ width: "80px", height: "80px", borderRadius: "10px", objectFit: "cover" }}
+                  />
+                </div>
+              )}
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setEditingImageItem(null)}>Cancel</button>
+                <button type="submit" className="btn-save">Save Photo</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

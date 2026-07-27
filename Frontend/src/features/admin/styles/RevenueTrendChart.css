@@ -43,8 +43,20 @@
 }
 .revenue-svg {
   width: 100%;
-  height: 180px;
-  display: block;
+  height: 100%;
+  overflow: visible;
+}
+
+.animated-chart-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawChartLine 1.5s ease-out forwards;
+}
+
+@keyframes drawChartLine {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 .revenue-x-labels {
   display: flex;

@@ -37,6 +37,10 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    customerName: {
+        type: String,
+        default: null
+    },
     tableNo: {
         type: mongoose.Schema.Types.Mixed,
         required: true

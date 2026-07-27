@@ -129,6 +129,15 @@ export const toggleItemAvailability = async ({ id, name }) => {
     }
 };
 
+export const updateItemImage = async ({ id, name, image }) => {
+    try {
+        const res = await api.patch("/api/admin/updateItemImage", { id, name, image });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to update item image") };
+    }
+};
+
 
 
 export const addItemToCategory = async ({ itemId, itemName, categoryName }) => {

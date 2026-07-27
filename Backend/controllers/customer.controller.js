@@ -161,6 +161,7 @@ async function createOrderController(req, res, next) {
         const newOrder = new OrderModel({
             orderId,
             customerId: activeCustomerId,
+            customerName: isCustomerExists.name || null,
             tableNo,
             items: validatedItems,
             amount: computedAmount,

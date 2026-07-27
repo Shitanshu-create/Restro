@@ -77,9 +77,9 @@ const DashboardPage = () => {
       </div>
       {/* Bottom Row: Revenue Chart + Top Selling Items */}
       <div className="dashboard-bottom-row">
-        <RevenueTrendChart />
+        <RevenueTrendChart orders={orders} />
         <div className="dashboard-right-col">
-          <TopSellingItems />
+          <TopSellingItems orders={orders} />
         </div>
       </div>
     </div>

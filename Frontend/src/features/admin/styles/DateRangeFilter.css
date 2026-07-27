@@ -1,0 +1,56 @@
+.date-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.date-preset-group {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-border-light);
+  padding: 3px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--color-border);
+}
+
+.date-preset-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.date-preset-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.date-preset-btn.active {
+  background-color: var(--color-card-background);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+.date-custom-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  padding: 6px 10px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card-background);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  outline: none;
+}
+
+.date-sep {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}

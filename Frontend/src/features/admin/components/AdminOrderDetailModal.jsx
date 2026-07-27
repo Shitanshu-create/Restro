@@ -17,7 +17,7 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                         <div>
                             <h2>Order #{order.orderId || order.id}</h2>
                             <span className="modal-customer-subtitle">
-                                Customer: {order.customerId || "N/A"} • Ordered at {order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently"}
+                                Customer: {order.customerName || order.customerId || "N/A"} • Ordered at {order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently"}
                             </span>
                         </div>
                     </div>
@@ -56,12 +56,15 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                             <strong>Ordered Time:</strong> {order.createdAt ? new Date(order.createdAt).toLocaleString() : "N/A"}
                         </div>
                         <div>
-                            <strong>Ordered By (Customer):</strong> {order.customerId || "Walk-in Guest"}
+                            <strong>Ordered By (Customer):</strong> {order.customerName || order.customerId || "Walk-in Guest"}
                         </div>
                         {order.paymentStatus === "Paid" && (
                             <div>
-                                <strong>Payment Settlement:</strong> Settled via {order.paymentMode || "Cash"}{" "}
-                                {order.paidBy ? `(Marked paid by staff: ${order.paidBy})` : order.razorpayPaymentId ? `(Razorpay ID: ${order.razorpayPaymentId})` : ""}
+                                <strong>Payment Settlement:</strong>{" "}
+                                {order.paymentMode === "Cash"
+                                    ? `Payment Received by ${order.paidBy || "Staff"}`
+                                    : `Settled via ${order.paymentMode || "Online"}${order.razorpayPaymentId ? ` (ID: ${order.razorpayPaymentId})` : ""}`
+                                }
                                 {order.paidAt ? ` on ${new Date(order.paidAt).toLocaleString()}` : ""}
                             </div>
                         )}

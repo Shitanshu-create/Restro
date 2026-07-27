@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useOrders } from "../hooks/useAdmin.js";
 import AdminOrderDetailModal from "../components/AdminOrderDetailModal.jsx";
 import "../styles/OrdersPage.css";
+import DateRangeFilter, { getPresetRange } from "../components/DateRangeFilter.jsx";
+
 const STATUS_TABS = ["All", "Preparing", "Ready"];
 const OrdersPage = () => {
   const { orders, loading, error, handleMarkCashPaid, handleMarkReady, reload } = useOrders();
@@ -9,6 +11,8 @@ const OrdersPage = () => {
   const [viewMode, setViewMode] = useState("List");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [dateRange, setDateRange] = useState(() => getPresetRange("today"));
+
   const formattedOrders = orders.map((o) => {
     const itemSummary = Array.isArray(o.items)
       ? o.items.map((i) => `${i.name || i.itemId}${i.quantity ? ` (${i.quantity})` : ""}`).join(", ")
@@ -17,19 +21,22 @@ const OrdersPage = () => {
       raw: o,
       id: o.orderId,
       tableNo: o.tableNo,
-      customer: `Customer ${o.customerId || ""}`,
+      customer: o.customerName || `Customer ${o.customerId || ""}`,
       items: itemSummary || "Order items",
       status: o.orderStatus || "Preparing",
       paymentStatus: o.paymentStatus,
       paymentMode: o.paymentMode,
+      createdAt: o.createdAt,
       time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
       total: Number(o.amount || 0)
     };
   });
+
   const statusCounts = STATUS_TABS.reduce((acc, s) => {
     acc[s] = s === "All" ? formattedOrders.length : formattedOrders.filter((o) => o.status === s).length;
     return acc;
   }, {});
+
   const filtered = formattedOrders.filter((o) => {
     const matchStatus = activeStatus === "All" || o.status === activeStatus;
     const q = search.toLowerCase();
@@ -39,7 +46,14 @@ const OrdersPage = () => {
       o.items.toLowerCase().includes(q) ||
       String(o.tableNo).toLowerCase().includes(q) ||
       String(o.id).toLowerCase().includes(q);
-    return matchStatus && matchSearch;
+
+    let matchDate = true;
+    if (dateRange.from && dateRange.to && o.createdAt) {
+      const orderDate = new Date(o.createdAt);
+      matchDate = orderDate >= dateRange.from && orderDate <= dateRange.to;
+    }
+
+    return matchStatus && matchSearch && matchDate;
   });
   const actionFor = (order) => {
     if (order.status === "Preparing") {
@@ -75,6 +89,7 @@ const OrdersPage = () => {
           />
         </div>
         <div className="orders-actions-group">
+          <DateRangeFilter onChange={setDateRange} />
           <div className="orders-view-toggle">
             {["List", "Board"].map((v) => (
               <button key={v} className={`view-toggle-btn ${viewMode === v ? "active" : ""}`} onClick={() => setViewMode(v)}>

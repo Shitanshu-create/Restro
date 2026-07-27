@@ -71,8 +71,24 @@ export function useMenu() {
         return res;
     };
     const handleToggleAvailability = async ({ id, name }) => {
+        setItems((prev) =>
+            prev.map((item) =>
+                item.id === id ? { ...item, isAvailable: !item.isAvailable } : item
+            )
+        );
+        setCategories((prev) =>
+            prev.map((cat) => ({
+                ...cat,
+                items: cat.items ? cat.items.map((item) =>
+                    item.id === id ? { ...item, isAvailable: !item.isAvailable } : item
+                ) : []
+            }))
+        );
+
         const res = await adminApi.toggleItemAvailability({ id, name });
-        if (res.success) await loadMenu();
+        if (!res.success) {
+            await loadMenu();
+        }
         return res;
     };
     const handleAssignItemToCategory = async ({ itemId, itemName, categoryName }) => {
@@ -85,11 +101,16 @@ export function useMenu() {
         if (res.success) await loadMenu();
         return res;
     };
+    const handleUpdateItemImage = async ({ id, name, image }) => {
+        const res = await adminApi.updateItemImage({ id, name, image });
+        if (res.success) await loadMenu();
+        return res;
+    };
     return {
         categories, items, loading, error,
         handleCreateItem, handleCreateCategory,
         handleRemoveItem, handleRemoveCategory,
-        handleToggleAvailability,
+        handleToggleAvailability, handleUpdateItemImage,
         handleAssignItemToCategory, handleRemoveItemFromCategory,
         reload: loadMenu
     };
@@ -117,13 +138,23 @@ export function useOrders() {
         return () => clearInterval(interval);
     }, [loadOrders]);
     const handleMarkCashPaid = async (orderId) => {
+        setOrders((prev) =>
+            prev.map((o) =>
+                o.orderId === orderId ? { ...o, paymentStatus: "Paid", paymentMode: "Cash" } : o
+            )
+        );
         const res = await adminApi.markCashPaid(orderId);
-        if (res.success) await loadOrders();
+        if (!res.success) await loadOrders();
         return res;
     };
     const handleMarkReady = async (orderId) => {
+        setOrders((prev) =>
+            prev.map((o) =>
+                o.orderId === orderId ? { ...o, orderStatus: "Ready" } : o
+            )
+        );
         const res = await adminApi.updateOrderStatus(orderId);
-        if (res.success) await loadOrders();
+        if (!res.success) await loadOrders();
         return res;
     };
 

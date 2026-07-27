@@ -34,7 +34,7 @@ const LiveOrdersList = () => {
     const filteredOrders = formattedOrders.filter((order) => {
         if (activeTab === "All") return true;
         return order.status.toLowerCase() === activeTab.toLowerCase();
-    });
+    }).slice(0, 4);
 
     return (
         <div className="live-orders-card">

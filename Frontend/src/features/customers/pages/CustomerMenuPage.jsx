@@ -135,7 +135,19 @@ const CustomerMenuPage = () => {
   };
 
 
-  const openRazorpayModal = (razorpayData, orderData) => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) return resolve(true);
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const openRazorpayModal = async (razorpayData, orderData) => {
+    await loadRazorpayScript();
     const options = {
       key: razorpayData.razorpayKeyId || "rzp_test_mock",
       amount: razorpayData.amount,
@@ -171,7 +183,7 @@ const CustomerMenuPage = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } else {
-      // Dev mock fallback if script isn't blocked by adblockers
+      // Dev mock fallback if script isn't loaded or blocked by adblockers
       setCart([]);
       setIsCartOpen(false);
       setOrderSuccessMsg(`Order #${orderData.orderId} placed for ${tableNo}! (Mock Payment Mode)`);

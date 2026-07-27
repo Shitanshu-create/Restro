@@ -358,6 +358,35 @@ async function getMenuController(req, res, next) {
 
 
 
+async function updateItemImageController(req, res, next) {
+    try {
+        const { id, name, image } = req.body;
+        if (!id || !name) {
+            return res.status(400).json({ message: "Please Provide Item ID and Name" });
+        }
+        const updatedItem = await MenuItemModel.findOneAndUpdate(
+            { id: Number(id), name },
+            { image },
+            { new: true }
+        );
+        if (!updatedItem) {
+            return res.status(404).json({ message: "Item Not Found" });
+        }
+        await CategoryModel.updateMany(
+            { "items.id": Number(id) },
+            { $set: { "items.$.image": image } }
+        );
+        return res.status(200).json({
+            success: true,
+            message: "Item image updated successfully",
+            item: updatedItem
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
 export default {
     createCategoryController,
     createItemController,
@@ -368,5 +397,6 @@ export default {
     fetchAllCategoriesController,
     fetchAllItemsController,
     toggleItemAvailabilityController,
+    updateItemImageController,
     getMenuController
 };

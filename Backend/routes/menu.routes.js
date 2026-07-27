@@ -100,6 +100,13 @@ menuRouter.get("/fetchAllItems", authMiddleware.authUser, menuController.fetchAl
  */
 menuRouter.patch("/toggleItemAvailability", authMiddleware.verifyAdmin, menuController.toggleItemAvailabilityController);
 
+/**
+ * @description Route to update item image
+ * @route PATCH /api/admin/updateItemImage
+ * @access Private (Admin)
+ */
+menuRouter.patch("/updateItemImage", authMiddleware.verifyAdmin, menuController.updateItemImageController);
+
 
 
 export default menuRouter;
