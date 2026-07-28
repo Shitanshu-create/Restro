@@ -4,25 +4,27 @@ import { resolveTable } from "../api/customer.api.js";
 import CartDrawer from "../components/CartDrawer.jsx";
 import OtpModal from "../components/OtpModal.jsx";
 import MyOrdersModal from "../components/MyOrdersModal.jsx";
+import DishDetailModal from "../components/DishDetailModal.jsx";
 import "../styles/CustomerMenuPage.css";
+
 const CustomerMenuPage = () => {
   const { categories, loading: menuLoading, error: menuError } = useMenu();
-  const { customer, setCustomer, handleLogout } = useCustomerAuth();
+  const { customer, setCustomer } = useCustomerAuth();
   const { orders, handlePlaceOrder, loading: orderLoading, reload: reloadOrders } = useCustomerOrders();
+
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [dietaryFilter, setDietaryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [selectedDishForCustomization, setSelectedDishForCustomization] = useState(null);
   const [paymentMode, setPaymentMode] = useState("Online");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccessMsg, setOrderSuccessMsg] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [tableNo, setTableNo] = useState("T-01");
-
-
 
   // Resolve QR token or table param from URL
   useEffect(() => {
@@ -40,18 +42,15 @@ const CustomerMenuPage = () => {
     }
   }, []);
 
-
-
   // Build category list from backend categories
   const categoryList = [
-    { id: "all", name: "All Dishes", icon: "🍽️" },
+    { id: "all", name: "All Dishes", count: 0 },
     ...categories.map((cat) => ({
       id: String(cat._id),
       name: cat.name,
-      icon: "🍴"
+      count: cat.items ? cat.items.length : 0
     }))
   ];
-
 
   // Flatten items across all categories for searching & filtering
   const allItems = categories.flatMap((cat) =>
@@ -62,8 +61,6 @@ const CustomerMenuPage = () => {
     }))
   );
 
-
-
   const filteredItems = allItems.filter((item) => {
     const matchCategory = selectedCategoryId === "all" || String(item.categoryId) === String(selectedCategoryId);
     const matchDiet =
@@ -72,24 +69,27 @@ const CustomerMenuPage = () => {
       (dietaryFilter === "non-veg" && !item.isVeg);
     const matchSearch =
       !searchQuery ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchDiet && matchSearch;
   });
 
-
-
   // Cart Handlers
   const handleAddToCart = (item) => {
+    // If dish has variants or add-ons, open customization sheet modal first
+    if ((item.variants && item.variants.length > 0) || (item.addOns && item.addOns.length > 0)) {
+      setSelectedDishForCustomization(item);
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, count: i.count + 1 } : i));
+        return prev.map((i) => (i.id === item.id ? { ...i, count: i.count + (item.count || 1) } : i));
       }
-      return [...prev, { ...item, count: 1, quantity: "Full" }];
+      return [...prev, { ...item, count: item.count || 1, quantity: item.quantity || "Full" }];
     });
   };
-
-
 
   const handleUpdateQuantity = (itemId, newCount) => {
     if (newCount <= 0) {
@@ -99,12 +99,9 @@ const CustomerMenuPage = () => {
     setCart((prev) => prev.map((i) => (i.id === itemId ? { ...i, count: newCount } : i)));
   };
 
-
   const handleRemoveItem = (itemId) => {
     setCart((prev) => prev.filter((i) => i.id !== itemId));
   };
-
-
 
   const executeOrderSubmission = async () => {
     setIsSubmitting(true);
@@ -133,7 +130,6 @@ const CustomerMenuPage = () => {
       setActionError(res.message || "Failed to place order");
     }
   };
-
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -175,23 +171,18 @@ const CustomerMenuPage = () => {
         name: customer?.name || "",
         contact: customer?.phoneNo || customer?.phone || ""
       },
-      theme: {
-        color: "#2563eb"
-      }
+      theme: { color: "#FF7A1A" }
     };
     if (window.Razorpay) {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } else {
-      // Dev mock fallback if script isn't loaded or blocked by adblockers
       setCart([]);
       setIsCartOpen(false);
       setOrderSuccessMsg(`Order #${orderData.orderId} placed for ${tableNo}! (Mock Payment Mode)`);
       setTimeout(() => setOrderSuccessMsg(null), 8000);
     }
   };
-
-
 
   const handleConfirmOrder = () => {
     const hasToken = !!sessionStorage.getItem("customerToken");
@@ -202,51 +193,47 @@ const CustomerMenuPage = () => {
     executeOrderSubmission();
   };
 
-
-
   const onOtpVerified = (customerData) => {
     setShowOtpModal(false);
     setCustomer(customerData);
     executeOrderSubmission();
   };
 
-
   const totalCartCount = cart.reduce((sum, i) => sum + i.count, 0);
   const totalCartPrice = cart.reduce((sum, i) => sum + (i.price * (i.quantity === "Half" ? 0.5 : 1)) * i.count, 0);
 
-
   return (
-    <div className="customer-menu-shell">
-      {/* Top Customer Header */}
-      <header className="customer-header">
-        <div className="cust-brand-group">
-          <div className="cust-brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 2L6 14" /><path d="M6 2l12 14" /><path d="M12 14v8" />
+    <div className="customer-mobile-shell">
+      {/* 1. Header Navigation Bar */}
+      <header className="mobile-header-bar">
+        <div className="mobile-brand">
+          <div className="brand-dot-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
+              <path d="M12 8v4l3 3" />
             </svg>
           </div>
           <div>
-            <h1 className="cust-brand-name">Restro Dine-In</h1>
-            <p className="cust-brand-sub">Scan & Order directly from Table</p>
+            <h1 className="mobile-brand-title">Restro Digital</h1>
+            <span className="mobile-table-tag">Table {tableNo}</span>
           </div>
         </div>
-        <div className="cust-header-right">
-          <div className="table-badge-pill">
-            <span className="table-dot" />
-            {tableNo}
-          </div>
+
+        <div className="mobile-header-actions">
           <button
-            className="cart-trigger-btn"
-            style={{ background: "#f8fafc", color: "#334155", border: "1px solid #cbd5e1" }}
+            type="button"
+            className="btn-orders-pill"
             onClick={() => {
               reloadOrders();
               setShowOrdersModal(true);
             }}
           >
-            📋 My Orders {orders.length > 0 && <span className="cart-badge-count">{orders.length}</span>}
+            My Orders {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
           </button>
+
           <button
-            className="cart-trigger-btn"
+            type="button"
+            className="btn-cart-pill"
             onClick={() => setIsCartOpen(true)}
             aria-label="Open cart"
           >
@@ -255,123 +242,143 @@ const CustomerMenuPage = () => {
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
-            Cart
-            {totalCartCount > 0 && <span className="cart-badge-count">{totalCartCount}</span>}
+            {totalCartCount > 0 && <span className="pill-badge primary">{totalCartCount}</span>}
           </button>
         </div>
       </header>
-      {/* Success Banner */}
+
+      {/* Banners */}
       {orderSuccessMsg && (
-        <div className="order-success-banner">
+        <div className="mobile-success-toast">
           <span>{orderSuccessMsg}</span>
           <button onClick={() => setOrderSuccessMsg(null)}>×</button>
         </div>
       )}
-      {/* Action Error Banner */}
-      {actionError && (
-        <div className="login-error" role="alert" style={{ margin: "16px auto", maxWidth: "1200px" }}>
-          {actionError}
+      {actionError && <div className="mobile-error-toast">{actionError}</div>}
+
+      {/* 2. Controls & Search */}
+      <div className="mobile-controls-container">
+        <div className="mobile-search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search dishes or cuisines..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-      )}
-      <div className="customer-menu-body">
-        {/* Category Sidebar */}
-        <aside className="category-sidebar">
-          <span className="cat-sidebar-label">CATEGORIES</span>
-          <nav className="cat-nav-list">
-            {categoryList.map((cat) => (
-              <button
-                key={cat.id}
-                className={`cat-nav-btn ${selectedCategoryId === cat.id ? "active" : ""}`}
-                onClick={() => setSelectedCategoryId(cat.id)}
-              >
-                <span className="cat-emoji">{cat.icon}</span>
-                <span className="cat-name">{cat.name}</span>
-              </button>
-            ))}
-          </nav>
-        </aside>
-        {/* Main Menu Grid Area */}
-        <main className="menu-dishes-main">
-          {/* Controls Bar: Search & Diet Filter */}
-          <div className="dishes-controls-bar">
-            <div className="dish-search-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search dishes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="diet-filter-pills">
-              {["all", "veg", "non-veg"].map((d) => (
-                <button
-                  key={d}
-                  className={`diet-pill ${dietaryFilter === d ? "active" : ""}`}
-                  onClick={() => setDietaryFilter(d)}
-                >
-                  {d === "all" ? "All" : d === "veg" ? "🌱 Veg" : "🍖 Non-Veg"}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Dishes Grid */}
-          {menuLoading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>Loading menu...</div>
-          ) : filteredItems.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>No dishes available in this category.</div>
-          ) : (
-            <div className="dishes-cards-grid">
-              {filteredItems.map((item) => {
-                const inCart = cart.find((i) => i.id === item.id);
-                return (
-                  <div key={item.id} className="dish-card">
-                    <div className="dish-info-body" style={{ padding: "20px" }}>
-                      <div className="dish-header-row">
-                        <div className="dish-title-group">
-                          <span className={`veg-dot ${item.isVeg ? "is-veg" : "is-nonveg"}`} />
-                          <h3 className="dish-name">{item.name}</h3>
+
+        <div className="mobile-diet-pills">
+          {["all", "veg", "non-veg"].map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={`diet-switch-pill ${dietaryFilter === d ? "active" : ""}`}
+              onClick={() => setDietaryFilter(d)}
+            >
+              {d === "all" ? "All" : d === "veg" ? "🌱 Veg" : "🍖 Non-Veg"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Sticky Horizontal Categories Tab Bar */}
+      <nav className="mobile-sticky-categories-bar">
+        <div className="categories-scroll-wrapper">
+          {categoryList.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`mobile-cat-pill ${selectedCategoryId === cat.id ? "active" : ""}`}
+              onClick={() => setSelectedCategoryId(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* 4. Swiggy/Zomato Style Dish Cards Grid */}
+      <main className="mobile-dishes-list">
+        {menuLoading ? (
+          <div className="mobile-loading-state">Loading delicious menu...</div>
+        ) : filteredItems.length === 0 ? (
+          <div className="mobile-empty-state">No dishes match your selected filter</div>
+        ) : (
+          filteredItems.map((dish) => {
+            const inCart = cart.find((i) => i.id === dish.id);
+            return (
+              <div key={dish.id} className="swiggy-mobile-dish-card" onClick={() => setSelectedDishForCustomization(dish)}>
+                {/* Left Dish Metadata */}
+                <div className="dish-card-left">
+                  <div className="veg-badge-row">
+                    <span className={`veg-dot-sm ${dish.isVeg ? "is-veg" : "is-nonveg"}`} />
+                    {dish.isBestseller && <span className="bestseller-mini-tag">Bestseller</span>}
+                  </div>
+                  <h3 className="dish-card-title">{dish.name}</h3>
+                  <div className="dish-card-price-row">
+                    <strong className="dish-price-text">${Number(dish.price).toFixed(2)}</strong>
+                    {dish.discountPrice > 0 && (
+                      <span className="dish-orig-price">${Number(dish.discountPrice).toFixed(2)}</span>
+                    )}
+                  </div>
+                  <p className="dish-desc-snippet">{dish.description || "Delicately prepared with fresh ingredients."}</p>
+                </div>
+
+                {/* Right Image + ADD Button */}
+                <div className="dish-card-right">
+                  <div className="dish-square-image-box">
+                    {dish.image ? (
+                      <img src={dish.image} alt={dish.name} className="dish-square-img" />
+                    ) : (
+                      <div className="dish-placeholder-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 2a10 10 0 0 0 0 20" />
+                        </svg>
+                      </div>
+                    )}
+
+                    {/* Stepper / ADD Button Overlay */}
+                    <div className="add-button-overlay" onClick={(e) => e.stopPropagation()}>
+                      {!dish.isAvailable ? (
+                        <span className="sold-out-badge">Sold Out</span>
+                      ) : inCart ? (
+                        <div className="stepper-pill">
+                          <button onClick={() => handleUpdateQuantity(dish.id, inCart.count - 1)}>-</button>
+                          <span>{inCart.count}</span>
+                          <button onClick={() => handleUpdateQuantity(dish.id, inCart.count + 1)}>+</button>
                         </div>
-                        <span className="dish-price">${Number(item.price).toFixed(2)}</span>
-                      </div>
-                      <div className="dish-card-footer" style={{ marginTop: "20px" }}>
-                        {!item.isAvailable ? (
-                          <span style={{ color: "#94a3b8", fontSize: "13px", fontWeight: "600" }}>Currently Unavailable</span>
-                        ) : inCart ? (
-                          <div className="item-qty-stepper">
-                            <button onClick={() => handleUpdateQuantity(item.id, inCart.count - 1)}>-</button>
-                            <span>{inCart.count} in cart</span>
-                            <button onClick={() => handleUpdateQuantity(item.id, inCart.count + 1)}>+</button>
-                          </div>
-                        ) : (
-                          <button className="add-item-btn" onClick={() => handleAddToCart(item)}>
-                            + Add to Order
-                          </button>
-                        )}
-                      </div>
+                      ) : (
+                        <button className="btn-add-action" onClick={() => handleAddToCart(dish)}>
+                          + ADD
+                        </button>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </main>
-      </div>
-      {/* Floating Bottom Cart Bar for Mobile */}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </main>
+
+      {/* 5. Fixed Bottom Floating Cart Bar */}
       {totalCartCount > 0 && (
-        <div className="mobile-floating-cart-bar">
-          <div className="floating-cart-text">
-            <span>{totalCartCount} Item(s)</span>
-            <strong>${totalCartPrice.toFixed(2)}</strong>
+        <div className="floating-mobile-cart-bar">
+          <div className="floating-cart-info">
+            <span className="floating-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
+            <strong className="floating-cart-total">${totalCartPrice.toFixed(2)}</strong>
           </div>
-          <button className="floating-view-cart-btn" onClick={() => setIsCartOpen(true)}>
+          <button className="floating-cart-btn" onClick={() => setIsCartOpen(true)}>
             View Order Cart →
           </button>
         </div>
       )}
-      {/* Cart Drawer Component */}
+
+      {/* Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -385,7 +392,6 @@ const CustomerMenuPage = () => {
         isSubmitting={isSubmitting}
       />
 
-
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <OtpModal
@@ -393,7 +399,6 @@ const CustomerMenuPage = () => {
           onClose={() => setShowOtpModal(false)}
         />
       )}
-
 
       {/* My Orders Modal */}
       <MyOrdersModal
@@ -403,11 +408,17 @@ const CustomerMenuPage = () => {
         loading={orderLoading}
         onRefresh={reloadOrders}
       />
+
+      {/* Dish Customization Sheet Modal */}
+      <DishDetailModal
+        isOpen={!!selectedDishForCustomization}
+        onClose={() => setSelectedDishForCustomization(null)}
+        dish={selectedDishForCustomization}
+        allItems={allItems}
+        onAddToCart={handleAddToCart}
+      />
     </div>
   );
-
-
 };
-
 
 export default CustomerMenuPage;

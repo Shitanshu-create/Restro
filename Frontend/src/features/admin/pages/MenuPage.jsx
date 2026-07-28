@@ -1,400 +1,642 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useMenu } from "../hooks/useAdmin.js";
+import MenuDrawer from "../components/MenuDrawer.jsx";
 import "../styles/MenuPage.css";
-
 
 const MenuPage = () => {
   const {
     categories, items, loading, error,
     handleCreateItem, handleCreateCategory,
     handleRemoveItem, handleRemoveCategory,
-    handleToggleAvailability,
-    handleAssignItemToCategory, handleRemoveItemFromCategory
+    handleToggleAvailability, handleUpdateMenuItem,
+    handleUpdateCategory, handleReorderCategories,
+    handleBulkOperations, reload
   } = useMenu();
-  const [activeModal, setActiveModal] = useState(null);
-  const [selectedItemId, setSelectedItemId] = useState("");
-  const [selectedCategoryName, setSelectedCategoryName] = useState("");
-  const [actionError, setActionError] = useState(null);
 
+  // State management
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dietFilter, setDietFilter] = useState("all"); // all, veg, non-veg
+  const [stockFilter, setStockFilter] = useState("all"); // all, available, unavailable
+  const [bestsellerOnly, setBestsellerOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("name"); // name, price-asc, price-desc, updated
 
-  const [itemImage, setItemImage] = useState("");
-  const [editingImageItem, setEditingImageItem] = useState(null);
-  const [newImageUrl, setNewImageUrl] = useState("");
+  // Bulk Operations State
+  const [selectedItemIds, setSelectedItemIds] = useState([]);
+  const [bulkAction, setBulkAction] = useState("");
+  const [bulkCategoryTarget, setBulkCategoryTarget] = useState("");
+  const [bulkPricePct, setBulkPricePct] = useState(10);
 
-  const handleImageFileChange = (e) => {
+  // Modal / Drawer State
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [categoryModal, setCategoryModal] = useState(null); // 'create' or 'rename'
+  const [targetCategoryName, setTargetCategoryName] = useState("");
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [actionMsg, setActionMsg] = useState(null);
+
+  // Drag and drop categories
+  const [draggedCatIndex, setDraggedCatIndex] = useState(null);
+
+  // Build unified items list mapped with categoryName
+  const allDishes = useMemo(() => {
+    const dishMap = new Map();
+    // Gather from categories
+    categories.forEach((cat) => {
+      (cat.items || []).forEach((i) => {
+        dishMap.set(Number(i.id), { ...i, categoryName: cat.name });
+      });
+    });
+    // Gather loose items from items array
+    items.forEach((i) => {
+      if (!dishMap.has(Number(i.id))) {
+        dishMap.set(Number(i.id), { ...i, categoryName: "Unassigned" });
+      }
+    });
+    return Array.from(dishMap.values());
+  }, [categories, items]);
+
+  // Filtering & Sorting
+  const filteredDishes = useMemo(() => {
+    return allDishes.filter((dish) => {
+      // Category filter
+      if (selectedCategoryId !== "all") {
+        const cat = categories.find((c) => String(c._id) === String(selectedCategoryId));
+        if (cat && dish.categoryName !== cat.name) return false;
+      }
+      // Search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchName = dish.name.toLowerCase().includes(q);
+        const matchDesc = dish.description?.toLowerCase().includes(q);
+        if (!matchName && !matchDesc) return false;
+      }
+      // Diet filter
+      if (dietFilter === "veg" && !dish.isVeg) return false;
+      if (dietFilter === "non-veg" && dish.isVeg) return false;
+
+      // Stock filter
+      if (stockFilter === "available" && !dish.isAvailable) return false;
+      if (stockFilter === "unavailable" && dish.isAvailable) return false;
+
+      // Bestseller filter
+      if (bestsellerOnly && !dish.isBestseller) return false;
+
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
+      if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
+      if (sortBy === "updated") return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+      return a.name.localeCompare(b.name);
+    });
+  }, [allDishes, categories, selectedCategoryId, searchQuery, dietFilter, stockFilter, bestsellerOnly, sortBy]);
+
+  // Handle Opening Drawer
+  const handleOpenAddDish = () => {
+    setEditingItem(null);
+    setIsDrawerOpen(true);
+  };
+
+  const handleOpenEditDish = (dish) => {
+    setEditingItem(dish);
+    setIsDrawerOpen(true);
+  };
+
+  // Save Dish Handler
+  const handleSaveDish = async (formData) => {
+    if (editingItem) {
+      const res = await handleUpdateMenuItem(formData);
+      if (res.success) {
+        setActionMsg(`Updated dish "${formData.name}" successfully!`);
+        setTimeout(() => setActionMsg(null), 4000);
+      }
+      return res;
+    } else {
+      const res = await handleCreateItem(formData);
+      if (res.success) {
+        setActionMsg(`Created dish "${formData.name}" successfully!`);
+        setTimeout(() => setActionMsg(null), 4000);
+      }
+      return res;
+    }
+  };
+
+  // Duplicate Dish Handler
+  const handleDuplicateDish = async (dish) => {
+    const res = await handleBulkOperations({
+      action: "duplicate",
+      itemIds: [dish.id]
+    });
+    if (res.success) {
+      setActionMsg(`Duplicated "${dish.name}"`);
+      setTimeout(() => setActionMsg(null), 3000);
+    }
+  };
+
+  // Delete Single Dish Handler
+  const handleDeleteDish = async (dish) => {
+    if (window.confirm(`Delete food item "${dish.name}"?`)) {
+      await handleRemoveItem({ id: dish.id, name: dish.name });
+      setActionMsg(`Deleted "${dish.name}"`);
+      setTimeout(() => setActionMsg(null), 3000);
+    }
+  };
+
+  // Category Drag and Drop Reordering
+  const handleCatDragStart = (idx) => {
+    setDraggedCatIndex(idx);
+  };
+
+  const handleCatDrop = async (dropIdx) => {
+    if (draggedCatIndex === null || draggedCatIndex === dropIdx) return;
+    const catList = [...categories];
+    const [moved] = catList.splice(draggedCatIndex, 1);
+    catList.splice(dropIdx, 0, moved);
+    setDraggedCatIndex(null);
+
+    const orderedNames = catList.map((c) => c.name);
+    await handleReorderCategories(orderedNames);
+  };
+
+  // Category CRUD
+  const handleCreateCategorySubmit = async (e) => {
+    e.preventDefault();
+    if (!newCategoryInput.trim()) return;
+    const res = await handleCreateCategory(newCategoryInput.trim());
+    if (res.success) {
+      setNewCategoryInput("");
+      setCategoryModal(null);
+      setActionMsg(`Created category "${newCategoryInput}"`);
+      setTimeout(() => setActionMsg(null), 3000);
+    }
+  };
+
+  const handleRenameCategorySubmit = async (e) => {
+    e.preventDefault();
+    if (!newCategoryInput.trim() || !targetCategoryName) return;
+    const res = await handleUpdateCategory({
+      oldName: targetCategoryName,
+      newName: newCategoryInput.trim()
+    });
+    if (res.success) {
+      setNewCategoryInput("");
+      setCategoryModal(null);
+      setActionMsg(`Renamed category to "${newCategoryInput}"`);
+      setTimeout(() => setActionMsg(null), 3000);
+    }
+  };
+
+  const handleDeleteCategoryClick = async (catName) => {
+    if (window.confirm(`Delete menu category "${catName}"? Dishes inside will be unassigned.`)) {
+      await handleRemoveCategory(catName);
+      setSelectedCategoryId("all");
+    }
+  };
+
+  // Bulk Selection Handlers
+  const toggleSelectDish = (id) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItemIds.length === filteredDishes.length) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(filteredDishes.map((d) => d.id));
+    }
+  };
+
+  const handleExecuteBulk = async () => {
+    if (!bulkAction || selectedItemIds.length === 0) return;
+
+    let payload = { action: bulkAction, itemIds: selectedItemIds };
+
+    if (bulkAction === "changeCategory") {
+      if (!bulkCategoryTarget) {
+        alert("Please choose a target category");
+        return;
+      }
+      payload.targetCategory = bulkCategoryTarget;
+    } else if (bulkAction === "adjustPrice") {
+      payload.percentage = bulkPricePct;
+    }
+
+    const res = await handleBulkOperations(payload);
+    if (res.success) {
+      setSelectedItemIds([]);
+      setBulkAction("");
+      setActionMsg(`Bulk operation '${bulkAction}' applied!`);
+      setTimeout(() => setActionMsg(null), 4000);
+    }
+  };
+
+  // Export / Import Menu JSON
+  const handleExportMenu = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allDishes, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `restro_menu_export_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportMenu = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setItemImage(reader.result);
+    reader.onload = async (evt) => {
+      try {
+        const importedDishes = JSON.parse(evt.target.result);
+        if (Array.isArray(importedDishes)) {
+          for (const dish of importedDishes) {
+            await handleCreateItem(dish);
+          }
+          setActionMsg(`Successfully imported ${importedDishes.length} menu items!`);
+          setTimeout(() => setActionMsg(null), 4000);
+        }
+      } catch (err) {
+        alert("Invalid JSON menu file");
+      }
     };
-    reader.readAsDataURL(file);
+    reader.readAsText(file);
   };
 
-  const addItem = async (event) => {
-    event.preventDefault();
-    setActionError(null);
-    const formData = new FormData(event.currentTarget);
-    const newItem = {
-      id: Number(formData.get("id")),
-      name: String(formData.get("name") || ""),
-      price: Number(formData.get("price") || 0),
-      isVeg: formData.get("type") === "Veg",
-      isAvailable: formData.get("available") === "on",
-      image: itemImage
-    };
-
-    const res = await handleCreateItem(newItem);
-    if (res.success) {
-      setItemImage("");
-      setActiveModal(null);
-    } else {
-      setActionError(res.message || "Failed to create item");
-    }
-  };
-
-  const handleSaveImageUpdate = async (e) => {
-    e.preventDefault();
-    if (!editingImageItem) return;
-    const res = await handleUpdateItemImage({
-      id: editingImageItem.id,
-      name: editingImageItem.name,
-      image: newImageUrl
-    });
-    if (res.success) {
-      setEditingImageItem(null);
-      setNewImageUrl("");
-    } else {
-      setActionError(res.message || "Failed to update item image");
-    }
-  };
-  const addCategory = async (event) => {
-    event.preventDefault();
-    setActionError(null);
-    const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") || "").trim();
-
-    const res = await handleCreateCategory(name);
-    if (res.success) {
-      setActiveModal(null);
-    } else {
-      setActionError(res.message || "Failed to create category");
-    }
-  };
-
-
-
-
-  const assignItemToCategory = async () => {
-    if (!selectedItemId || !selectedCategoryName) return;
-    setActionError(null);
-    const item = items.find((i) => String(i.id) === String(selectedItemId));
-    if (!item) return;
-
-
-    const res = await handleAssignItemToCategory({
-      itemId: item.id,
-      itemName: item.name,
-      categoryName: selectedCategoryName
-    });
-    if (!res.success) {
-      setActionError(res.message || "Failed to assign item");
-    }
-  };
-
-
-
-
-  const removeItemFromCat = async (categoryName, item) => {
-    await handleRemoveItemFromCategory({
-      itemId: item.id,
-      itemName: item.name,
-      categoryName
-    });
-  };
-  const deleteCategory = async (name) => {
-    if (window.confirm(`Delete category "${name}"?`)) {
-      await handleRemoveCategory(name);
-    }
-  };
-  const deleteItem = async (item) => {
-    if (window.confirm(`Delete food item "${item.name}"?`)) {
-      await handleRemoveItem({ id: item.id, name: item.name });
-    }
-  };
   return (
-    <div className="menu-page">
-      {/* Header Bar */}
-      <div className="menu-top-bar">
-        <div>
-          <h1 className="menu-header-title">Menu Setup</h1>
-          <p className="menu-header-subtitle">Catalog tools and category assignment</p>
+    <div className="swiggy-menu-page">
+      {/* 1. Header Bar */}
+      <header className="swiggy-menu-header">
+        <div className="header-left-title">
+          <h1>Menu Management</h1>
+          <p>Manage items, categories, pricing, and upsells in real-time</p>
         </div>
-        <div className="menu-actions-row">
-          <button className="menu-btn-primary" type="button" onClick={() => setActiveModal("item")}>
-            + Add Item
+        <div className="header-right-actions">
+          <label className="btn-import-menu">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Import JSON
+            <input type="file" accept=".json" onChange={handleImportMenu} />
+          </label>
+          <button type="button" className="btn-export-menu" onClick={handleExportMenu}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            Export JSON
           </button>
-          <button className="menu-btn-secondary" type="button" onClick={() => setActiveModal("category")}>
-            + Add Category
-          </button>
-        </div>
-      </div>
-      {error && <div className="login-error" role="alert">{error}</div>}
-      {actionError && <div className="login-error" role="alert">{actionError}</div>}
-      {/* Category Assignment Panel */}
-      <div className="menu-assign-card">
-        <div className="assign-header">
-          <h3>Add Item to Category</h3>
-          <p>Assign existing dish items to a menu category</p>
-        </div>
-        <div className="assign-controls">
-          <div className="control-field">
-            <label>Select Item</label>
-            <select value={selectedItemId} onChange={(e) => setSelectedItemId(e.target.value)}>
-              <option value="">-- Choose Item --</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>{item.name} (${item.price})</option>
-              ))}
-            </select>
-          </div>
-          <div className="control-field">
-            <label>Select Category</label>
-            <select value={selectedCategoryName} onChange={(e) => setSelectedCategoryName(e.target.value)}>
-              <option value="">-- Choose Category --</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <button className="assign-action-btn" type="button" onClick={assignItemToCategory}>
-            Assign Item
+          <button type="button" className="btn-add-dish-primary" onClick={handleOpenAddDish}>
+            + Add Dish
           </button>
         </div>
-      </div>
-      {/* Full Menu Category Cards Grid */}
-      {loading ? (
-        <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>Loading menu...</div>
-      ) : categories.length === 0 ? (
-        <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>No menu categories found. Create a category or add items to start.</div>
-      ) : (
-        <div className="menu-categories-grid">
-          {categories.map((category) => (
-            <div key={category._id} className="category-card">
-              <div className="category-card-header">
-                <div>
-                  <span className="category-tag">Category</span>
-                  <h3 className="category-name">{category.name}</h3>
-                </div>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <span className="item-count-badge">{category.items ? category.items.length : 0} items</span>
-                  <button
-                    onClick={() => deleteCategory(category.name)}
-                    style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-              <div className="category-items-list">
-                {category.items && category.items.map((item) => (
-                  <div key={item.id} className="menu-item-card-row">
-                    <div className="item-main-info">
-                      <div className="item-title-row" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover" }} />
-                        ) : (
-                          <div style={{ width: "36px", height: "36px", borderRadius: "6px", background: "var(--color-border-light)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>🍽️</div>
-                        )}
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span className={`veg-dot ${item.isVeg ? "is-veg" : "is-nonveg"}`} />
-                            <strong className="item-title">{item.name} (ID: {item.id})</strong>
-                          </div>
-                          <span className="item-price-text">${item.price.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="item-actions-right">
-                      <button
-                        className="item-remove-btn"
-                        type="button"
-                        onClick={() => {
-                          setEditingImageItem(item);
-                          setNewImageUrl(item.image || "");
-                        }}
-                        title="Change Photo"
-                      >
-                        🖼️ Photo
-                      </button>
-                      <button
-                        className={`avail-badge ${item.isAvailable ? "in-stock" : "out-of-stock"}`}
-                        onClick={() => handleToggleAvailability({ id: item.id, name: item.name })}
-                        style={{ border: "none", cursor: "pointer" }}
-                      >
-                        {item.isAvailable ? "Available" : "Unavailable"}
-                      </button>
-                      <button
-                        className="item-remove-btn"
-                        type="button"
-                        onClick={() => removeItemFromCat(category.name, item)}
-                        title="Remove from category"
-                      >
-                        Remove
-                      </button>
-                      <button
-                        className="item-remove-btn"
-                        type="button"
-                        onClick={() => deleteItem(item)}
-                        style={{ color: "#dc2626" }}
-                        title="Delete item permanently"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {(!category.items || category.items.length === 0) && (
-                  <div className="empty-category-notice">No items assigned yet</div>
-                )}
+      </header>
+
+      {/* Action Notification Banner */}
+      {actionMsg && <div className="swiggy-action-toast">{actionMsg}</div>}
+      {error && <div className="swiggy-error-toast">{error}</div>}
+
+      {/* 2. Sticky Horizontal Category Navigation Bar */}
+      <nav className="sticky-category-nav-bar">
+        <div className="category-scroll-container">
+          <button
+            type="button"
+            className={`cat-tab-btn ${selectedCategoryId === "all" ? "active" : ""}`}
+            onClick={() => setSelectedCategoryId("all")}
+          >
+            All Dishes
+            <span className="cat-count-badge">{allDishes.length}</span>
+          </button>
+
+          {categories.map((cat, idx) => (
+            <div
+              key={cat._id}
+              className={`cat-tab-wrapper ${selectedCategoryId === String(cat._id) ? "active" : ""}`}
+              draggable
+              onDragStart={() => handleCatDragStart(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleCatDrop(idx)}
+            >
+              <button
+                type="button"
+                className="cat-tab-btn-content"
+                onClick={() => setSelectedCategoryId(String(cat._id))}
+              >
+                {cat.name}
+                <span className="cat-count-badge">{cat.items ? cat.items.length : 0}</span>
+              </button>
+
+              {/* Category Quick Actions */}
+              <div className="cat-quick-options">
+                <button
+                  type="button"
+                  title="Rename category"
+                  onClick={() => {
+                    setTargetCategoryName(cat.name);
+                    setNewCategoryInput(cat.name);
+                    setCategoryModal("rename");
+                  }}
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  title="Delete category"
+                  onClick={() => handleDeleteCategoryClick(cat.name)}
+                >
+                  ×
+                </button>
               </div>
             </div>
           ))}
         </div>
-      )}
-      {/* Modals */}
-      {activeModal && (
-        <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
-          <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{activeModal === "item" ? "Add New Dish Item" : "Add New Category"}</h3>
-              <button className="modal-close-btn" onClick={() => setActiveModal(null)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+
+        <button
+          type="button"
+          className="btn-new-category-tab"
+          onClick={() => {
+            setNewCategoryInput("");
+            setCategoryModal("create");
+          }}
+        >
+          + New Category
+        </button>
+      </nav>
+
+      {/* 3. Toolbar (Search, Filter, Sort) */}
+      <div className="swiggy-menu-toolbar">
+        {/* Search Bar */}
+        <div className="toolbar-search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by dish name or ingredient..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Filter Pills */}
+        <div className="toolbar-filters-group">
+          {/* Diet Filter */}
+          <div className="filter-pill-switch">
+            {["all", "veg", "non-veg"].map((d) => (
+              <button
+                key={d}
+                type="button"
+                className={`switch-btn ${dietFilter === d ? "active" : ""}`}
+                onClick={() => setDietFilter(d)}
+              >
+                {d === "all" ? "All Diets" : d === "veg" ? "🌱 Veg" : "🍖 Non-Veg"}
               </button>
-            </div>
-            {activeModal === "item" ? (
-              <form className="modal-form" onSubmit={addItem}>
-                <div className="form-group">
-                  <label>Item ID (Unique Number)</label>
-                  <input name="id" type="number" placeholder="e.g. 101" required />
+            ))}
+          </div>
+
+          {/* Stock Filter */}
+          <div className="filter-pill-switch">
+            {["all", "available", "unavailable"].map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`switch-btn ${stockFilter === s ? "active" : ""}`}
+                onClick={() => setStockFilter(s)}
+              >
+                {s === "all" ? "All Stock" : s === "available" ? "In Stock" : "Out of Stock"}
+              </button>
+            ))}
+          </div>
+
+          {/* Bestseller Toggle Pill */}
+          <button
+            type="button"
+            className={`bestseller-toggle-pill ${bestsellerOnly ? "active" : ""}`}
+            onClick={() => setBestsellerOnly(!bestsellerOnly)}
+          >
+            ★ Bestsellers Only
+          </button>
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="toolbar-sort-group">
+          <label>Sort:</label>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="name">Dish Name (A-Z)</option>
+            <option value="price-asc">Price (Low → High)</option>
+            <option value="price-desc">Price (High → Low)</option>
+            <option value="updated">Recently Updated</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Select All Row */}
+      {filteredDishes.length > 0 && (
+        <div className="select-all-bar">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={selectedItemIds.length === filteredDishes.length && filteredDishes.length > 0}
+              onChange={toggleSelectAll}
+            />
+            Select All ({filteredDishes.length} Dishes)
+          </label>
+          {selectedItemIds.length > 0 && (
+            <span className="selected-count-tag">{selectedItemIds.length} items selected</span>
+          )}
+        </div>
+      )}
+
+      {/* 4. Menu Items Grid */}
+      {loading ? (
+        <div className="swiggy-loading-state">Loading menu items...</div>
+      ) : filteredDishes.length === 0 ? (
+        <div className="swiggy-empty-state">
+          <h3>No dishes match your filters</h3>
+          <p>Try adjusting your search query, dietary, or stock filter settings.</p>
+        </div>
+      ) : (
+        <div className="swiggy-dishes-grid">
+          {filteredDishes.map((dish) => {
+            const isSelected = selectedItemIds.includes(dish.id);
+            return (
+              <div
+                key={dish.id}
+                className={`dish-card-item ${!dish.isAvailable ? "is-out-of-stock" : ""} ${isSelected ? "is-selected" : ""}`}
+                onClick={() => handleOpenEditDish(dish)}
+              >
+                {/* Select Checkbox */}
+                <div
+                  className="card-checkbox-overlay"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSelectDish(dish.id);
+                  }}
+                >
+                  <input type="checkbox" checked={isSelected} readOnly />
                 </div>
-                <div className="form-group">
-                  <label>Item Name</label>
-                  <input name="name" type="text" placeholder="e.g. Truffle Wagyu Burger" required />
-                </div>
-                <div className="form-group">
-                  <label>Price ($)</label>
-                  <input name="price" type="number" step="0.01" min="0" placeholder="e.g. 25.00" required />
-                </div>
-                <div className="form-group">
-                  <label>Dietary Type</label>
-                  <select name="type" defaultValue="Veg">
-                    <option value="Veg">Veg</option>
-                    <option value="Non-veg">Non-veg</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Item Photo (Upload File)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    style={{ fontSize: "13px" }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Or Paste Image URL</label>
-                  <input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
-                    value={itemImage.startsWith("data:") ? "" : itemImage}
-                    onChange={(e) => setItemImage(e.target.value.trim())}
-                  />
-                  {itemImage && (
-                    <img
-                      src={itemImage}
-                      alt="Preview"
-                      style={{ width: "60px", height: "60px", borderRadius: "8px", objectFit: "cover", marginTop: "8px" }}
-                    />
+
+                {/* Card Image Box */}
+                <div className="card-image-box">
+                  {dish.image ? (
+                    <img src={dish.image} alt={dish.name} className="dish-cover-img" />
+                  ) : (
+                    <div className="dish-img-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 2a10 10 0 0 0 0 20" />
+                      </svg>
+                    </div>
                   )}
+
+                  {/* Badges */}
+                  <div className="card-badges-row">
+                    <span className={`veg-dot-badge ${dish.isVeg ? "is-veg" : "is-nonveg"}`} />
+                    {dish.isBestseller && <span className="bestseller-badge">Bestseller</span>}
+                    {dish.isRecommended && <span className="recommended-badge">Chef Pick</span>}
+                  </div>
                 </div>
-                <div className="form-check-group">
-                  <input name="available" type="checkbox" id="avail-check" defaultChecked />
-                  <label htmlFor="avail-check">Available for ordering</label>
+
+                {/* Card Content Body */}
+                <div className="card-content-body">
+                  <div className="card-title-row">
+                    <h3 className="dish-card-name">{dish.name}</h3>
+                    <span className="dish-card-id">#{dish.id}</span>
+                  </div>
+
+                  <span className="dish-card-category">{dish.categoryName}</span>
+
+                  <div className="card-price-row">
+                    <span className="current-price">${Number(dish.price).toFixed(2)}</span>
+                    {dish.discountPrice > 0 && (
+                      <span className="discount-price">${Number(dish.discountPrice).toFixed(2)}</span>
+                    )}
+                  </div>
+
+                  {/* Hover Quick Actions */}
+                  <div className="card-hover-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="hover-action-btn btn-edit"
+                      onClick={() => handleOpenEditDish(dish)}
+                      title="Edit dish"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="hover-action-btn btn-dup"
+                      onClick={() => handleDuplicateDish(dish)}
+                      title="Duplicate dish"
+                    >
+                      Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      className={`hover-action-btn ${dish.isAvailable ? "btn-stock" : "btn-unstock"}`}
+                      onClick={() => handleToggleAvailability({ id: dish.id, name: dish.name })}
+                      title="Toggle availability"
+                    >
+                      {dish.isAvailable ? "In Stock" : "Out"}
+                    </button>
+                    <button
+                      type="button"
+                      className="hover-action-btn btn-delete"
+                      onClick={() => handleDeleteDish(dish)}
+                      title="Delete dish"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setActiveModal(null)}>Cancel</button>
-                  <button type="submit" className="btn-save">Create Item</button>
-                </div>
-              </form>
-            ) : (
-              <form className="modal-form" onSubmit={addCategory}>
-                <div className="form-group">
-                  <label>Category Name</label>
-                  <input name="name" type="text" placeholder="e.g. Chef Specials" required />
-                </div>
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setActiveModal(null)}>Cancel</button>
-                  <button type="submit" className="btn-save">Create Category</button>
-                </div>
-              </form>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 5. Bulk Actions Floating Toolbar */}
+      {selectedItemIds.length > 0 && (
+        <div className="floating-bulk-bar">
+          <span className="bulk-count"><strong>{selectedItemIds.length}</strong> Dishes Selected</span>
+          <div className="bulk-controls">
+            <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value)}>
+              <option value="">-- Choose Bulk Action --</option>
+              <option value="markAvailable">Mark Available</option>
+              <option value="markUnavailable">Mark Out of Stock</option>
+              <option value="changeCategory">Change Category</option>
+              <option value="adjustPrice">Adjust Prices (%)</option>
+              <option value="duplicate">Duplicate Selected</option>
+              <option value="delete">Delete Selected</option>
+            </select>
+
+            {bulkAction === "changeCategory" && (
+              <select value={bulkCategoryTarget} onChange={(e) => setBulkCategoryTarget(e.target.value)}>
+                <option value="">-- Select Target Category --</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c.name}>{c.name}</option>
+                ))}
+              </select>
             )}
+
+            {bulkAction === "adjustPrice" && (
+              <input
+                type="number"
+                placeholder="% Change (e.g. +10 or -10)"
+                value={bulkPricePct}
+                onChange={(e) => setBulkPricePct(Number(e.target.value))}
+                style={{ width: "160px" }}
+              />
+            )}
+
+            <button type="button" className="btn-apply-bulk" onClick={handleExecuteBulk}>
+              Apply Action
+            </button>
+            <button type="button" className="btn-cancel-bulk" onClick={() => setSelectedItemIds([])}>
+              Cancel Selection
+            </button>
           </div>
         </div>
       )}
 
-      {/* Edit Item Image Modal */}
-      {editingImageItem && (
-        <div className="modal-backdrop" onClick={() => setEditingImageItem(null)}>
-          <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Change Photo for {editingImageItem.name}</h3>
-              <button className="modal-close-btn" onClick={() => setEditingImageItem(null)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <form className="modal-form" onSubmit={handleSaveImageUpdate}>
-              <div className="form-group">
-                <label>Upload New Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onloadend = () => setNewImageUrl(reader.result);
-                    reader.readAsDataURL(file);
-                  }}
-                  style={{ fontSize: "13px" }}
-                />
-              </div>
-              <div className="form-group">
-                <label>Or Image URL</label>
+      {/* 6. Persistent Right Side Editing Drawer */}
+      <MenuDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        item={editingItem}
+        categories={categories}
+        allItems={allDishes}
+        onSave={handleSaveDish}
+        onDelete={handleDeleteDish}
+      />
+
+      {/* Category Create / Rename Modal */}
+      {categoryModal && (
+        <div className="modal-backdrop" onClick={() => setCategoryModal(null)}>
+          <div className="category-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>{categoryModal === "create" ? "Create New Category" : `Rename Category "${targetCategoryName}"`}</h3>
+            <form onSubmit={categoryModal === "create" ? handleCreateCategorySubmit : handleRenameCategorySubmit}>
+              <div className="field-group" style={{ margin: "16px 0" }}>
+                <label>Category Name</label>
                 <input
                   type="text"
-                  placeholder="https://..."
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  placeholder="e.g. Chef Specials"
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value)}
+                  required
                 />
               </div>
-              {newImageUrl && (
-                <div style={{ textAlign: "center", margin: "10px 0" }}>
-                  <img
-                    src={newImageUrl}
-                    alt="Preview"
-                    style={{ width: "80px", height: "80px", borderRadius: "10px", objectFit: "cover" }}
-                  />
-                </div>
-              )}
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setEditingImageItem(null)}>Cancel</button>
-                <button type="submit" className="btn-save">Save Photo</button>
+              <div className="modal-actions-row">
+                <button type="button" className="btn-modal-cancel" onClick={() => setCategoryModal(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-modal-submit">
+                  {categoryModal === "create" ? "Create Category" : "Save Name"}
+                </button>
               </div>
             </form>
           </div>
@@ -403,4 +645,5 @@ const MenuPage = () => {
     </div>
   );
 };
+
 export default MenuPage;

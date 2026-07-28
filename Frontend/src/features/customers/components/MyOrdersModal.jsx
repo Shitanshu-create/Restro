@@ -42,7 +42,11 @@ const MyOrdersModal = ({ isOpen, onClose, orders, loading, onRefresh }) => {
             <div className="myorders-empty-state">Loading your orders...</div>
           ) : orders.length === 0 ? (
             <div className="myorders-empty-state">
-              <div className="empty-icon">🍽️</div>
+              <div className="empty-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 11l19-9-9 19-2-8-8-2z" />
+                </svg>
+              </div>
               <h3>No active orders found</h3>
               <p>Place an order from the menu to track its preparation live!</p>
             </div>

@@ -24,7 +24,6 @@ const DashboardHeader = ({ title, subtitle, onToggleMobileMenu }) => {
         </button>
         <div className="header-text">
           <h1 className="page-main-title">{title}</h1>
-          {subtitle && <p className="page-main-subtitle">{subtitle}</p>}
         </div>
       </div>
       <div className="header-right-user">

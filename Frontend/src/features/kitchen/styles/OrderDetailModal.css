@@ -1,4 +1,8 @@
 @import "../../../styles/globals.css";
+
+/* =============================================
+   OLD MODAL CLASSES (legacy, kept for kitchen view)
+   ============================================= */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -112,7 +116,6 @@
   font-weight: 700;
   color: var(--color-text-primary);
 }
-/* Items list */
 .order-items-detail-section h3 {
   font-size: var(--font-size-small);
   font-weight: 800;
@@ -171,7 +174,6 @@
   font-size: var(--font-size-heading);
   font-weight: 800;
 }
-/* Footer buttons */
 .order-modal-footer {
   padding: 16px 24px;
   background-color: var(--color-background);
@@ -202,3 +204,358 @@
 .btn-mark-ready { background-color: var(--color-success); }
 .btn-mark-ready:hover { opacity: 0.9; }
 .btn-mark-served { background-color: var(--color-text-primary); }
+
+
+/* =============================================
+   PREMIUM SAAS MODAL CLASSES (Admin order detail)
+   ============================================= */
+
+.saas-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.saas-order-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: min(100%, 520px);
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
+  margin: auto;
+  animation: saasModalIn 0.2s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+@keyframes saasModalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Header */
+.saas-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 18px;
+  border-bottom: 1px solid #f0ede9;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.saas-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.premium-table-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: #121212;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.table-badge-label {
+  font-size: 8px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.table-badge-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.saas-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.saas-order-id-row h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #121212;
+  line-height: 1.2;
+}
+
+.saas-customer-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.meta-dot {
+  color: #d1d5db;
+}
+
+.saas-modal-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  color: #6b7280;
+  border: 1px solid #f0ede9;
+  transition: all 0.15s ease;
+}
+
+.saas-modal-close-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Status Grid */
+.saas-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px 22px;
+  background: #f8f6f3;
+  flex-shrink: 0;
+}
+
+.saas-status-card {
+  background: #ffffff;
+  border: 1px solid #efeae5;
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.saas-status-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #9ca3af;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.saas-status-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #121212;
+}
+
+.saas-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Kitchen status colors */
+.status-incoming .saas-status-dot   { background: #6b7280; }
+.status-preparing .saas-status-dot  { background: #f59e0b; }
+.status-ready .saas-status-dot      { background: #10b981; }
+.status-delivered .saas-status-dot  { background: #3b82f6; }
+
+.status-incoming  { color: #374151; }
+.status-preparing { color: #92400e; }
+.status-ready     { color: #065f46; }
+.status-delivered { color: #1d4ed8; }
+
+/* Payment status colors */
+.payment-paid .saas-status-dot    { background: #10b981; }
+.payment-pending .saas-status-dot { background: #f59e0b; }
+
+.payment-paid    { color: #065f46; }
+.payment-pending { color: #92400e; }
+
+.method-value {
+  color: #374151;
+}
+
+/* Items Section */
+.saas-items-section {
+  padding: 16px 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.saas-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.saas-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.saas-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 13px;
+  background: #f8f6f3;
+  border: 1px solid #efeae5;
+  border-radius: 10px;
+}
+
+.saas-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.subtle-qty-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: #FF7A1A;
+  background: #fff4ee;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.saas-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #121212;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-variant-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.saas-item-price {
+  font-size: 13px;
+  font-weight: 800;
+  color: #121212;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Total Card */
+.saas-total-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 22px 0;
+  padding: 14px 16px;
+  background: #121212;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.saas-total-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.saas-total-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Footer */
+.saas-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #f0ede9;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.saas-btn-close {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.saas-btn-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.saas-btn-secondary {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.saas-btn-secondary:hover {
+  background: #f3f4f6;
+}
+
+.saas-btn-primary {
+  padding: 10px 22px;
+  border-radius: 10px;
+  background: #FF7A1A;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.saas-btn-primary:hover {
+  background: #E86800;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 122, 26, 0.35);
+}

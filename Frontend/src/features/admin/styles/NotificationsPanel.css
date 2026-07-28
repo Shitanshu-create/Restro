@@ -1,99 +1,125 @@
 @import "../../../styles/globals.css";
-.notifications-card {
-  background-color: var(--color-card-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
+
+.notif-card-attachment {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.notif-header {
+
+.notif-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
-.card-section-title {
-  font-size: var(--font-size-heading);
-  font-weight: var(--font-weight-section);
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+
+.notif-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
 }
-.card-section-subtitle {
-  font-size: var(--font-size-small);
-  color: var(--color-text-secondary);
-  margin-top: 2px;
+
+.notif-feed-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
 }
-.notif-list {
+
+.notif-card-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.notif-empty {
-  text-align: center;
-  padding: 24px;
-  font-size: var(--font-size-body);
-  color: var(--color-text-muted);
-}
-.notif-row {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
+
+.notif-item-row {
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--radius-button);
-  border: 1px solid transparent;
-  transition: var(--transition-smooth);
+  transition: background-color 0.15s ease;
 }
-.notif-info {
-  background-color: var(--color-background);
-  border-color: var(--color-border-light);
+
+.notif-item-row.notif-info {
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
 }
-.notif-warning {
-  background-color: #FFF8F0;
-  border-color: #FDDCB5;
+
+.notif-item-row.notif-warning {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
 }
-.notif-icon {
+
+.notif-circle-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #4b5563;
   display: flex;
-  align-items: flex-start;
-  padding-top: 2px;
-  color: var(--color-text-muted);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
-.notif-warning .notif-icon {
-  color: var(--color-warning);
+
+.notif-warning .notif-circle-icon {
+  background-color: #ef4444;
+  color: #ffffff;
 }
-.notif-body {
+
+.notif-item-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
-.notif-title {
-  font-size: var(--font-size-body);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  line-height: 1.35;
+
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
 }
-.notif-detail {
-  font-size: var(--font-size-small);
-  color: var(--color-text-secondary);
-  line-height: 1.4;
+
+.notif-item-sub {
+  font-size: 12px;
+  color: #6b7280;
 }
-.notif-time {
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
-  margin-top: 4px;
+
+.notif-item-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
-.notif-dismiss-btn {
-  font-size: var(--font-size-small);
+
+.notif-item-time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.notif-btn-dismiss {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-muted);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  transition: var(--transition-smooth);
-  white-space: nowrap;
+  color: #4b5563;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
-.notif-dismiss-btn:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-border-light);
+
+.notif-btn-dismiss:hover {
+  background-color: #f3f4f6;
+  color: #111827;
 }

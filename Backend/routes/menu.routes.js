@@ -107,6 +107,32 @@ menuRouter.patch("/toggleItemAvailability", authMiddleware.verifyAdmin, menuCont
  */
 menuRouter.patch("/updateItemImage", authMiddleware.verifyAdmin, menuController.updateItemImageController);
 
+/**
+ * @description Route to update full menu item details
+ * @route PATCH /api/admin/updateMenuItem
+ * @access Private (Admin)
+ */
+menuRouter.patch("/updateMenuItem", authMiddleware.verifyAdmin, menuController.updateMenuItemController);
 
+/**
+ * @description Route to update category name
+ * @route PATCH /api/admin/updateCategory
+ * @access Private (Admin)
+ */
+menuRouter.patch("/updateCategory", authMiddleware.verifyAdmin, menuController.updateCategoryController);
+
+/**
+ * @description Route to reorder categories
+ * @route POST /api/admin/reorderCategories
+ * @access Private (Admin)
+ */
+menuRouter.post("/reorderCategories", authMiddleware.verifyAdmin, menuController.reorderCategoriesController);
+
+/**
+ * @description Route for bulk operations on menu items
+ * @route POST /api/admin/bulkOperations
+ * @access Private (Admin)
+ */
+menuRouter.post("/bulkOperations", authMiddleware.verifyAdmin, menuController.bulkOperationsController);
 
 export default menuRouter;

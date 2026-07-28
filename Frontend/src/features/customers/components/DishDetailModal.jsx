@@ -1,0 +1,166 @@
+import React, { useState } from "react";
+import "../styles/DishDetailModal.css";
+
+const DishDetailModal = ({ isOpen, onClose, dish, allItems, onAddToCart }) => {
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
+  const [quantity, setQuantity] = useState(1);
+
+  if (!isOpen || !dish) return null;
+
+  const basePrice = selectedVariant ? selectedVariant.price : Number(dish.price || 0);
+  const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + Number(a.price || 0), 0);
+  const unitPrice = basePrice + addOnsTotal;
+  const totalPrice = unitPrice * quantity;
+
+  const variants = Array.isArray(dish.variants) ? dish.variants : [];
+  const addOns = Array.isArray(dish.addOns) ? dish.addOns : [];
+  const upsellIds = Array.isArray(dish.upsellItems) ? dish.upsellItems : [];
+  const upsellDishes = allItems.filter((i) => upsellIds.includes(i.id));
+
+  const toggleAddOn = (addon) => {
+    setSelectedAddOns((prev) =>
+      prev.some((a) => a.name === addon.name)
+        ? prev.filter((a) => a.name !== addon.name)
+        : [...prev, addon]
+    );
+  };
+
+  const handleAddSubmit = () => {
+    onAddToCart({
+      ...dish,
+      price: unitPrice,
+      quantity: selectedVariant ? selectedVariant.name : "Full",
+      selectedAddOns,
+      count: quantity
+    });
+    onClose();
+  };
+
+  return (
+    <div className="dish-modal-backdrop" onClick={onClose}>
+      <div className="dish-modal-sheet" onClick={(e) => e.stopPropagation()}>
+        {/* Sheet Handle */}
+        <div className="sheet-drag-handle" />
+
+        {/* Dish Hero Image / Header */}
+        <div className="dish-hero-box">
+          {dish.image ? (
+            <img src={dish.image} alt={dish.name} className="dish-hero-img" />
+          ) : (
+            <div className="dish-hero-placeholder">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a10 10 0 0 0 0 20" />
+              </svg>
+            </div>
+          )}
+          <button className="sheet-close-btn" onClick={onClose} aria-label="Close sheet">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Modal Sheet Content */}
+        <div className="dish-sheet-body">
+          {/* Header info */}
+          <div className="dish-title-section">
+            <div className="dish-badge-name-row">
+              <span className={`veg-dot-sm ${dish.isVeg ? "is-veg" : "is-nonveg"}`} />
+              <h2 className="dish-sheet-title">{dish.name}</h2>
+            </div>
+            <p className="dish-sheet-desc">{dish.description || "Freshly cooked to order using authentic high-quality ingredients."}</p>
+            <div className="dish-meta-tags">
+              {dish.preparationTime && <span>⏱️ {dish.preparationTime} mins prep</span>}
+              {dish.isBestseller && <span className="bestseller-tag">★ Bestseller</span>}
+            </div>
+          </div>
+
+          {/* Variants Section */}
+          {variants.length > 0 && (
+            <div className="customization-group">
+              <h3>Select Portion Size</h3>
+              <div className="options-radio-list">
+                {variants.map((v, idx) => (
+                  <label key={idx} className="option-radio-card">
+                    <input
+                      type="radio"
+                      name="portionVariant"
+                      checked={selectedVariant?.name === v.name}
+                      onChange={() => setSelectedVariant(v)}
+                    />
+                    <span className="option-label">{v.name}</span>
+                    <strong className="option-price">${Number(v.price).toFixed(2)}</strong>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add-ons Section */}
+          {addOns.length > 0 && (
+            <div className="customization-group">
+              <h3>Add Extras (Optional)</h3>
+              <div className="options-checkbox-list">
+                {addOns.map((a, idx) => {
+                  const isChecked = selectedAddOns.some((item) => item.name === a.name);
+                  return (
+                    <label key={idx} className="option-checkbox-card">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleAddOn(a)}
+                      />
+                      <span className="option-label">{a.name}</span>
+                      <strong className="option-price">+${Number(a.price).toFixed(2)}</strong>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Upsell Recommendations */}
+          {upsellDishes.length > 0 && (
+            <div className="customization-group">
+              <h3>Frequently Ordered Together</h3>
+              <div className="upsell-dishes-scroll">
+                {upsellDishes.map((upDish) => (
+                  <div key={upDish.id} className="upsell-dish-card">
+                    <div className="upsell-dish-info">
+                      <span className="upsell-name">{upDish.name}</span>
+                      <span className="upsell-price">${Number(upDish.price).toFixed(2)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="upsell-add-btn"
+                      onClick={() => onAddToCart({ ...upDish, count: 1 })}
+                    >
+                      + ADD
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sheet Footer Bar */}
+        <div className="dish-sheet-footer">
+          <div className="stepper-count-box">
+            <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>-</button>
+            <span>{quantity}</span>
+            <button onClick={() => setQuantity((q) => q + 1)}>+</button>
+          </div>
+          <button className="add-to-cart-submit-btn" onClick={handleAddSubmit}>
+            Add to Order • ${totalPrice.toFixed(2)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DishDetailModal;

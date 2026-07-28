@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../styles/NotificationsPanel.css";
+
 const initialNotifications = [
   {
     id: 1,
@@ -23,40 +24,43 @@ const initialNotifications = [
     time: "25 mins ago",
   },
 ];
+
 const NotificationsPanel = () => {
   const [notifications, setNotifications] = useState(initialNotifications);
+
   const dismiss = (id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
+
   return (
-    <div className="notifications-card">
-      <div className="notif-header">
-        <div>
-          <h2 className="card-section-title">Notifications</h2>
-          <p className="card-section-subtitle">Alerts that need attention</p>
-        </div>
+    <div className="notif-card-attachment">
+      <div className="notif-card-header">
+        <h2 className="notif-card-title">notification</h2>
+        <span className="notif-feed-tag">Live Operational Feed</span>
       </div>
-      <div className="notif-list">
+      <div className="notif-card-list">
         {notifications.length === 0 ? (
-          <div className="notif-empty">All clear! No pending alerts.</div>
+          <div className="notif-empty">All clear! No active notifications.</div>
         ) : (
           notifications.map((n) => (
-            <div key={n.id} className={`notif-row notif-${n.type}`}>
-              <div className="notif-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div key={n.id} className={`notif-item-row notif-${n.type}`}>
+              <div className="notif-circle-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               </div>
-              <div className="notif-body">
-                <div className="notif-title">{n.title}</div>
-                <div className="notif-detail">{n.detail}</div>
-                <div className="notif-time">{n.time}</div>
+              <div className="notif-item-content">
+                <div className="notif-item-title">{n.title}</div>
+                <div className="notif-item-sub">{n.detail}</div>
               </div>
-              <button className="notif-dismiss-btn" onClick={() => dismiss(n.id)}>
-                Dismiss
-              </button>
+              <div className="notif-item-right">
+                <span className="notif-item-time">{n.time}</span>
+                <button type="button" className="notif-btn-dismiss" onClick={() => dismiss(n.id)}>
+                  Dismiss
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -64,4 +68,5 @@ const NotificationsPanel = () => {
     </div>
   );
 };
+
 export default NotificationsPanel;

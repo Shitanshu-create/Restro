@@ -106,11 +106,33 @@ export function useMenu() {
         if (res.success) await loadMenu();
         return res;
     };
+    const handleUpdateMenuItem = async (itemData) => {
+        const res = await adminApi.updateMenuItem(itemData);
+        if (res.success) await loadMenu();
+        return res;
+    };
+    const handleUpdateCategory = async ({ oldName, newName }) => {
+        const res = await adminApi.updateCategory({ oldName, newName });
+        if (res.success) await loadMenu();
+        return res;
+    };
+    const handleReorderCategories = async (orderedCategoryNames) => {
+        const res = await adminApi.reorderCategories(orderedCategoryNames);
+        if (res.success) await loadMenu();
+        return res;
+    };
+    const handleBulkOperations = async (bulkPayload) => {
+        const res = await adminApi.bulkOperations(bulkPayload);
+        if (res.success) await loadMenu();
+        return res;
+    };
     return {
         categories, items, loading, error,
         handleCreateItem, handleCreateCategory,
         handleRemoveItem, handleRemoveCategory,
         handleToggleAvailability, handleUpdateItemImage,
+        handleUpdateMenuItem, handleUpdateCategory,
+        handleReorderCategories, handleBulkOperations,
         handleAssignItemToCategory, handleRemoveItemFromCategory,
         reload: loadMenu
     };
@@ -157,7 +179,17 @@ export function useOrders() {
         if (!res.success) await loadOrders();
         return res;
     };
+    const handleUpdateOrderStatus = async (orderId, targetStatus) => {
+        setOrders((prev) =>
+            prev.map((o) =>
+                o.orderId === orderId ? { ...o, orderStatus: targetStatus } : o
+            )
+        );
+        const res = await adminApi.updateOrderStatus(orderId);
+        if (!res.success) await loadOrders();
+        return res;
+    };
 
 
-    return { orders, loading, error, handleMarkCashPaid, handleMarkReady, reload: loadOrders };
+    return { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload: loadOrders };
 }

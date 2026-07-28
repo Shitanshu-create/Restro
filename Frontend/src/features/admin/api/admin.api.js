@@ -138,6 +138,42 @@ export const updateItemImage = async ({ id, name, image }) => {
     }
 };
 
+export const updateMenuItem = async (itemData) => {
+    try {
+        const res = await api.patch("/api/admin/updateMenuItem", itemData);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to update item") };
+    }
+};
+
+export const updateCategory = async ({ oldName, newName }) => {
+    try {
+        const res = await api.patch("/api/admin/updateCategory", { oldName, newName });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to rename category") };
+    }
+};
+
+export const reorderCategories = async (orderedCategoryNames) => {
+    try {
+        const res = await api.post("/api/admin/reorderCategories", { orderedCategoryNames });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to reorder categories") };
+    }
+};
+
+export const bulkOperations = async (bulkPayload) => {
+    try {
+        const res = await api.post("/api/admin/bulkOperations", bulkPayload);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to perform bulk operation") };
+    }
+};
+
 
 
 export const addItemToCategory = async ({ itemId, itemName, categoryName }) => {
