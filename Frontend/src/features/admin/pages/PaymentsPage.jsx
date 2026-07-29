@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import StatCard from "../components/StatCard.jsx";
 import { useOrders } from "../hooks/useAdmin.js";
 import AdminOrderDetailModal from "../components/AdminOrderDetailModal.jsx";
+import ExportModal from "../components/ExportModal.jsx";
 import "../styles/PaymentsPage.css";
 import DateRangeFilter, { getPresetRange } from "../components/DateRangeFilter.jsx";
 
@@ -9,6 +10,7 @@ const PaymentsPage = () => {
   const { orders, loading, error, handleMarkCashPaid, reload } = useOrders();
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [dateRange, setDateRange] = useState(() => getPresetRange("today"));
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const filteredOrders = orders.filter((o) => {
     if (!dateRange.from || !dateRange.to || !o.createdAt) return true;
@@ -22,16 +24,28 @@ const PaymentsPage = () => {
   const cashPaymentsCount = paidOrders.filter((o) => o.paymentMode === "Cash").length;
   return (
     <div className="payments-page">
-      {/* Top Banner Section */}
-      <div className="payments-banner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div className="banner-text-group">
-          <h1 className="banner-main-title">Payments & Settlement Ledger</h1>
-          <p className="banner-sub-title">
-            Live order transaction history and payment status tracking
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+      {/* Top Bar Controls */}
+      <div className="payments-banner" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <DateRangeFilter onChange={setDateRange} />
+          <button
+            onClick={() => setShowExportModal(true)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "1px solid var(--color-border, #cbd5e1)",
+              background: "#ffffff",
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#0f172a",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}
+          >
+            📊 Export CSV / PDF
+          </button>
           <button
             onClick={reload}
             style={{
@@ -136,6 +150,11 @@ const PaymentsPage = () => {
           }}
         />
       )}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        orders={orders}
+      />
     </div>
   );
 };

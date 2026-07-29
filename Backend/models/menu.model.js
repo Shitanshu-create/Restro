@@ -1,10 +1,34 @@
 import mongoose from "mongoose";
 
+const variantSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        default: "Regular"
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    discountPrice: {
+        type: Number,
+        default: 0
+    },
+    isAvailable: {
+        type: Boolean,
+        default: true
+    }
+}, { _id: true });
+
+const addOnSchema = new mongoose.Schema({
+    name: String,
+    price: Number
+}, { _id: false });
+
 const menuItemSchema = new mongoose.Schema({
     id: {
         type: Number,
-        required: true,
-        unique: true
+        unique: true,
+        required: true
     },
     name: {
         type: String,
@@ -14,13 +38,13 @@ const menuItemSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    price: {
-        type: Number,
-        required: true
+    image: {
+        type: String,
+        default: ""
     },
-    discountPrice: {
-        type: Number,
-        default: 0
+    imageUrl: {
+        type: String,
+        default: ""
     },
     preparationTime: {
         type: Number,
@@ -42,21 +66,28 @@ const menuItemSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    image: {
-        type: String,
-        default: ""
+
+    // ---------- PRICE SYSTEM ----------
+    price: {
+        type: Number,
+        required: true,
+        default: 0
     },
-    upsellItems: [{
-        type: Number
-    }],
-    variants: [{
-        name: { type: String, required: true },
-        price: { type: Number, required: true }
-    }],
-    addOns: [{
-        name: { type: String, required: true },
-        price: { type: Number, required: true }
-    }]
+    discountPrice: {
+        type: Number,
+        default: 0
+    },
+    // Optional Portion Variants (e.g. Half, Full)
+    variants: {
+        type: [variantSchema],
+        default: []
+    },
+
+    // ---------- OPTIONAL ----------
+    addOns: {
+        type: [addOnSchema],
+        default: []
+    }
 }, { timestamps: true });
 
 const categorySchema = new mongoose.Schema({
@@ -74,3 +105,4 @@ const categorySchema = new mongoose.Schema({
 
 export const MenuItemModel = mongoose.model("MenuItem", menuItemSchema);
 export const CategoryModel = mongoose.model("Category", categorySchema);
+

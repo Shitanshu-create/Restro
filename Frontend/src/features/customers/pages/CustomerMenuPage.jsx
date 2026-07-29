@@ -52,14 +52,22 @@ const CustomerMenuPage = () => {
     }))
   ];
 
-  // Flatten items across all categories for searching & filtering
-  const allItems = categories.flatMap((cat) =>
-    (cat.items || []).map((item) => ({
-      ...item,
-      categoryId: String(cat._id),
-      categoryName: cat.name
-    }))
-  );
+  // Deduplicate items across all categories for searching & filtering
+  const allItems = React.useMemo(() => {
+    const dishMap = new Map();
+    categories.forEach((cat) => {
+      (cat.items || []).forEach((item) => {
+        if (!dishMap.has(item.id)) {
+          dishMap.set(item.id, {
+            ...item,
+            categoryId: String(cat._id),
+            categoryName: cat.name
+          });
+        }
+      });
+    });
+    return Array.from(dishMap.values());
+  }, [categories]);
 
   const filteredItems = allItems.filter((item) => {
     const matchCategory = selectedCategoryId === "all" || String(item.categoryId) === String(selectedCategoryId);
@@ -76,12 +84,30 @@ const CustomerMenuPage = () => {
 
   // Cart Handlers
   const handleAddToCart = (item) => {
-    // If dish has variants or add-ons, open customization sheet modal first
+    // If item was configured via customization modal, add directly to cart
+    if (item.isCustomized) {
+      setCart((prev) => {
+        const itemKey = `${item.id}_${item.quantity}_${JSON.stringify(item.selectedAddOns || [])}`;
+        const existingIdx = prev.findIndex(
+          (i) => `${i.id}_${i.quantity}_${JSON.stringify(i.selectedAddOns || [])}` === itemKey
+        );
+        if (existingIdx > -1) {
+          const updated = [...prev];
+          updated[existingIdx].count += item.count || 1;
+          return updated;
+        }
+        return [...prev, { ...item, count: item.count || 1 }];
+      });
+      return;
+    }
+
+    // If dish has portion variants or add-ons, open customization modal sheet
     if ((item.variants && item.variants.length > 0) || (item.addOns && item.addOns.length > 0)) {
       setSelectedDishForCustomization(item);
       return;
     }
 
+    // Simple fixed-price item with no options
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
@@ -109,6 +135,7 @@ const CustomerMenuPage = () => {
     const orderItems = cart.map((i) => ({
       itemId: i.id,
       quantity: i.quantity || "Full",
+      variantPrice: i.variantPrice || null,
       count: i.count || 1
     }));
     const res = await handlePlaceOrder({
@@ -185,7 +212,7 @@ const CustomerMenuPage = () => {
   };
 
   const handleConfirmOrder = () => {
-    const hasToken = !!sessionStorage.getItem("customerToken");
+    const hasToken = !!localStorage.getItem("customerToken");
     if (!customer || !hasToken) {
       setShowOtpModal(true);
       return;
@@ -200,7 +227,10 @@ const CustomerMenuPage = () => {
   };
 
   const totalCartCount = cart.reduce((sum, i) => sum + i.count, 0);
-  const totalCartPrice = cart.reduce((sum, i) => sum + (i.price * (i.quantity === "Half" ? 0.5 : 1)) * i.count, 0);
+  const totalCartPrice = cart.reduce((sum, i) => {
+    const unitPrice = i.variantPrice !== null && i.variantPrice !== undefined ? Number(i.variantPrice) : Number(i.price || 0);
+    return sum + (unitPrice * (i.quantity === "Half" ? 0.5 : 1)) * i.count;
+  }, 0);
 
   return (
     <div className="customer-mobile-shell">
@@ -414,7 +444,6 @@ const CustomerMenuPage = () => {
         isOpen={!!selectedDishForCustomization}
         onClose={() => setSelectedDishForCustomization(null)}
         dish={selectedDishForCustomization}
-        allItems={allItems}
         onAddToCart={handleAddToCart}
       />
     </div>

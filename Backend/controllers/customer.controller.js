@@ -140,18 +140,37 @@ async function createOrderController(req, res, next) {
                 return res.status(400).json({ message: `"${dbItem.name}" is currently unavailable` });
             }
 
-            const portionMultiplier = cartItem.quantity === "Half" ? 0.5 : 1;
+            let unitPrice = 0;
+
+            if (dbItem.hasVariants || (Array.isArray(dbItem.variants) && dbItem.variants.length > 0)) {
+                if (cartItem.variantPrice !== undefined && cartItem.variantPrice !== null && !isNaN(Number(cartItem.variantPrice))) {
+                    unitPrice = Number(cartItem.variantPrice);
+                } else if (Array.isArray(dbItem.variants) && dbItem.variants.length > 0) {
+                    // Match variant by name if variantPrice wasn't passed directly
+                    const matchedVar = dbItem.variants.find(v => v.name === cartItem.quantity);
+                    unitPrice = matchedVar ? matchedVar.price : dbItem.variants[0].price;
+                } else {
+                    return res.status(400).json({ message: `Please select a portion size for "${dbItem.name}"` });
+                }
+            } else {
+                unitPrice = Number(dbItem.price || 0);
+                if (cartItem.quantity === "Half") {
+                    unitPrice *= 0.5;
+                }
+            }
+
             const itemCount = Math.max(1, Number(cartItem.count || 1));
-            const itemTotal = dbItem.price * portionMultiplier * itemCount;
+            const itemTotal = unitPrice * itemCount;
 
             computedAmount += itemTotal;
 
             validatedItems.push({
                 itemId: dbItem.id,
                 name: dbItem.name,
-                price: dbItem.price,
+                price: unitPrice,
                 count: itemCount,
-                quantity: cartItem.quantity === "Half" ? "Half" : "Full",
+                quantity: cartItem.quantity || "Full",
+                variantPrice: cartItem.variantPrice ? Number(cartItem.variantPrice) : null,
                 isVeg: dbItem.isVeg
             });
         }

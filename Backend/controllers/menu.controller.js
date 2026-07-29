@@ -39,34 +39,49 @@ async function createCategoryController(req, res, next) {
  */
 async function createItemController(req, res, next) {
     try {
-        const { id, name, price, isAvailable, isVeg, image } = req.body;
-        if (!id || !name || !price) {
-            return res.status(401).json({ message: "Please Provide All Fields" });
+        const { id, name, price, discountPrice, categoryName, variants, addOns, isAvailable, isVeg, image, imageUrl, preparationTime, isBestseller, isRecommended } = req.body;
+        if (!id || !name) {
+            return res.status(400).json({ message: "Item ID and Name are required" });
         }
+        if (price === undefined || price === null || price === "") {
+            return res.status(400).json({ message: "Item Price is required" });
+        }
+
         const existingItem = await MenuItemModel.findOne({ $or: [{ id }, { name }] });
         if (existingItem) {
             return res.status(400).json({ message: "Item already Exists" });
         }
+
         const newItem = new MenuItemModel({
             id,
             name,
-            price,
-            isAvailable,
-            isVeg,
-            image
+            price: Number(price),
+            discountPrice: discountPrice ? Number(discountPrice) : 0,
+            variants: Array.isArray(variants) ? variants : [],
+            addOns: Array.isArray(addOns) ? addOns : [],
+            isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : true,
+            isVeg: isVeg !== undefined ? Boolean(isVeg) : true,
+            isBestseller: Boolean(isBestseller),
+            isRecommended: Boolean(isRecommended),
+            preparationTime: preparationTime ? Number(preparationTime) : 15,
+            image: image || "",
+            imageUrl: imageUrl || ""
         });
+
         await newItem.save();
+
+        // Auto-assign item to Category if categoryName provided
+        if (categoryName) {
+            await CategoryModel.findOneAndUpdate(
+                { name: categoryName },
+                { $addToSet: { items: newItem } }
+            );
+        }
+
         return res.status(200).json({
             success: true,
             message: "Item listed successfully",
-            item: {
-                id: newItem.id,
-                name: newItem.name,
-                price: newItem.price,
-                isAvailable: newItem.isAvailable,
-                isVeg: newItem.isVeg,
-                image: newItem.image,
-            }
+            item: newItem
         });
     } catch (error) {
         next(error);
@@ -393,14 +408,14 @@ async function updateItemImageController(req, res, next) {
  */
 async function updateMenuItemController(req, res, next) {
     try {
-        const { id, name, description, price, discountPrice, preparationTime, isVeg, isAvailable, isBestseller, isRecommended, image, upsellItems, variants, addOns, categoryName } = req.body;
+        const { id, name, description, price, discountPrice, preparationTime, isVeg, isAvailable, isBestseller, isRecommended, image, imageUrl, variants, addOns, categoryName } = req.body;
         if (!id) {
             return res.status(400).json({ message: "Item ID is required" });
         }
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
-        if (price !== undefined) updateData.price = Number(price);
+        if (price !== undefined && price !== null && price !== "") updateData.price = Number(price);
         if (discountPrice !== undefined) updateData.discountPrice = Number(discountPrice);
         if (preparationTime !== undefined) updateData.preparationTime = Number(preparationTime);
         if (isVeg !== undefined) updateData.isVeg = Boolean(isVeg);
@@ -408,7 +423,7 @@ async function updateMenuItemController(req, res, next) {
         if (isBestseller !== undefined) updateData.isBestseller = Boolean(isBestseller);
         if (isRecommended !== undefined) updateData.isRecommended = Boolean(isRecommended);
         if (image !== undefined) updateData.image = image;
-        if (upsellItems !== undefined) updateData.upsellItems = upsellItems;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
         if (variants !== undefined) updateData.variants = variants;
         if (addOns !== undefined) updateData.addOns = addOns;
 
@@ -422,26 +437,27 @@ async function updateMenuItemController(req, res, next) {
             return res.status(404).json({ message: "Item not found" });
         }
 
-        // Also sync item within categories
+        // Also sync item within categories using arrayFilters for reliable nested updates
         await CategoryModel.updateMany(
             { "items.id": Number(id) },
             {
                 $set: {
-                    "items.$.name": updatedItem.name,
-                    "items.$.description": updatedItem.description,
-                    "items.$.price": updatedItem.price,
-                    "items.$.discountPrice": updatedItem.discountPrice,
-                    "items.$.preparationTime": updatedItem.preparationTime,
-                    "items.$.isVeg": updatedItem.isVeg,
-                    "items.$.isAvailable": updatedItem.isAvailable,
-                    "items.$.isBestseller": updatedItem.isBestseller,
-                    "items.$.isRecommended": updatedItem.isRecommended,
-                    "items.$.image": updatedItem.image,
-                    "items.$.upsellItems": updatedItem.upsellItems,
-                    "items.$.variants": updatedItem.variants,
-                    "items.$.addOns": updatedItem.addOns
+                    "items.$[elem].name": updatedItem.name,
+                    "items.$[elem].description": updatedItem.description,
+                    "items.$[elem].price": updatedItem.price,
+                    "items.$[elem].discountPrice": updatedItem.discountPrice,
+                    "items.$[elem].preparationTime": updatedItem.preparationTime,
+                    "items.$[elem].isVeg": updatedItem.isVeg,
+                    "items.$[elem].isAvailable": updatedItem.isAvailable,
+                    "items.$[elem].isBestseller": updatedItem.isBestseller,
+                    "items.$[elem].isRecommended": updatedItem.isRecommended,
+                    "items.$[elem].image": updatedItem.image,
+                    "items.$[elem].imageUrl": updatedItem.imageUrl,
+                    "items.$[elem].variants": updatedItem.variants,
+                    "items.$[elem].addOns": updatedItem.addOns
                 }
-            }
+            },
+            { arrayFilters: [{ "elem.id": Number(id) }] }
         );
 
         // If categoryName was specified, assign item to category if not present

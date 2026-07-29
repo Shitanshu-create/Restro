@@ -19,8 +19,11 @@ const itemSchema = new mongoose.Schema({
     },
     quantity: {
         type: String,
-        enum: ["Half", "Full"],
         default: "Full"
+    },
+    variantPrice: {
+        type: Number,
+        default: null
     },
     isVeg: {
         type: Boolean,

@@ -5,12 +5,12 @@ import OrderHistoryModal from "../components/OrderHistoryModal.jsx";
 import "../styles/OrdersPage.css";
 import { getPresetRange } from "../components/DateRangeFilter.jsx";
 
-const STATUS_TABS = ["All", "Incoming", "Preparing", "Ready", "Delivered"];
+const STATUS_TABS = ["All", "Preparing", "Ready"];
 
 const OrdersPage = () => {
   const { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload } = useOrders();
   const [activeStatus, setActiveStatus] = useState("All");
-  const [viewMode, setViewMode] = useState("Board");
+  const [viewMode, setViewMode] = useState("List");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -24,7 +24,6 @@ const OrdersPage = () => {
       : String(o.items || "");
 
     let status = o.orderStatus || "Preparing";
-    if (status === "Pending") status = "Incoming";
 
     return {
       raw: o,
@@ -212,7 +211,7 @@ const OrdersPage = () => {
       ) : viewMode === "Board" ? (
         /* Kanban Board View with Drag & Drop */
         <div className="orders-board-kanban">
-          {["Incoming", "Preparing", "Ready", "Delivered"].map((colStatus) => {
+          {["Preparing", "Ready"].map((colStatus) => {
             const colOrders = filtered.filter((o) => o.status === colStatus);
             return (
               <div

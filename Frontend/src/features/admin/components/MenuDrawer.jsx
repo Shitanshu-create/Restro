@@ -15,12 +15,12 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
     isBestseller: false,
     isRecommended: false,
     image: "",
-    upsellItems: [],
+    imageUrl: "",
     variants: [],
     addOns: []
   });
 
-  const [upsellSearch, setUpsellSearch] = useState("");
+  const [imageTab, setImageTab] = useState("file"); // "file" or "url"
   const [newVariant, setNewVariant] = useState({ name: "", price: "" });
   const [newAddOn, setNewAddOn] = useState({ name: "", price: "" });
   const [isSaving, setIsSaving] = useState(false);
@@ -28,23 +28,26 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
 
   useEffect(() => {
     if (item) {
+      const img = item.image || "";
+      const imgUrl = item.imageUrl || (img.startsWith("http") ? img : "");
       setFormData({
         id: item.id || "",
         name: item.name || "",
         description: item.description || "",
         categoryName: item.categoryName || (categories[0]?.name || ""),
-        price: item.price !== undefined ? item.price : "",
+        price: item.price !== undefined && item.price !== null ? item.price : "",
         discountPrice: item.discountPrice !== undefined ? item.discountPrice : "",
         preparationTime: item.preparationTime || 15,
         isVeg: item.isVeg !== undefined ? item.isVeg : true,
         isAvailable: item.isAvailable !== undefined ? item.isAvailable : true,
         isBestseller: item.isBestseller || false,
         isRecommended: item.isRecommended || false,
-        image: item.image || "",
-        upsellItems: Array.isArray(item.upsellItems) ? item.upsellItems : [],
+        image: img,
+        imageUrl: imgUrl,
         variants: Array.isArray(item.variants) ? item.variants : [],
         addOns: Array.isArray(item.addOns) ? item.addOns : []
       });
+      setImageTab(imgUrl && !img.startsWith("data:") ? "url" : "file");
     } else {
       // New item mode
       const nextId = allItems && allItems.length > 0 ? Math.max(...allItems.map(i => Number(i.id) || 0)) + 1 : 101;
@@ -61,7 +64,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
         isBestseller: false,
         isRecommended: false,
         image: "",
-        upsellItems: [],
+        imageUrl: "",
         variants: [],
         addOns: []
       });
@@ -82,19 +85,6 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
       setFormData((prev) => ({ ...prev, image: reader.result }));
     };
     reader.readAsDataURL(file);
-  };
-
-  // Upsell Handlers
-  const handleAddUpsell = (itemId) => {
-    const idNum = Number(itemId);
-    if (!formData.upsellItems.includes(idNum)) {
-      setFormData((prev) => ({ ...prev, upsellItems: [...prev.upsellItems, idNum] }));
-    }
-    setUpsellSearch("");
-  };
-
-  const handleRemoveUpsell = (itemId) => {
-    setFormData((prev) => ({ ...prev, upsellItems: prev.upsellItems.filter((id) => id !== Number(itemId)) }));
   };
 
   // Variant Handlers
@@ -138,8 +128,8 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
       setErrorMsg("Dish name is required");
       return;
     }
-    if (!formData.price && formData.price !== 0) {
-      setErrorMsg("Price is required");
+    if (formData.price === "" || formData.price === null || formData.price === undefined) {
+      setErrorMsg("Dish base price is required");
       return;
     }
 
@@ -152,11 +142,6 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
       setErrorMsg(res.message || "Failed to save dish details");
     }
   };
-
-  const availableUpsellDishes = allItems.filter(
-    (i) => i.id !== Number(formData.id) && !formData.upsellItems.includes(i.id) &&
-      (!upsellSearch || i.name.toLowerCase().includes(upsellSearch.toLowerCase()))
-  );
 
   return (
     <>
@@ -231,7 +216,8 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
 
           {/* Section 2: Pricing & Timing */}
           <div className="form-section">
-            <h3 className="section-title">Pricing & Timing</h3>
+            <h3 className="section-title">Pricing Structure</h3>
+
             <div className="form-row grid-3">
               <div className="field-group">
                 <label>Base Price ($) *</label>
@@ -324,41 +310,84 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
 
           {/* Section 4: Image Management */}
           <div className="form-section">
-            <h3 className="section-title">Dish Image</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h3 className="section-title" style={{ margin: 0 }}>Dish Image</h3>
+              <div style={{ display: "flex", gap: "4px", background: "#f1f5f9", padding: "3px", borderRadius: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => setImageTab("file")}
+                  style={{
+                    padding: "4px 10px", fontSize: "11px", fontWeight: "700", borderRadius: "6px", border: "none",
+                    background: imageTab === "file" ? "#ffffff" : "transparent", cursor: "pointer", color: imageTab === "file" ? "#0f172a" : "#64748b"
+                  }}
+                >
+                  📁 Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageTab("url")}
+                  style={{
+                    padding: "4px 10px", fontSize: "11px", fontWeight: "700", borderRadius: "6px", border: "none",
+                    background: imageTab === "url" ? "#ffffff" : "transparent", cursor: "pointer", color: imageTab === "url" ? "#0f172a" : "#64748b"
+                  }}
+                >
+                  🔗 Image URL
+                </button>
+              </div>
+            </div>
+
             <div className="image-upload-box">
-              {formData.image ? (
-                <div className="image-preview-container">
-                  <img src={formData.image} alt="Dish Preview" className="preview-img" />
-                  <button
-                    type="button"
-                    className="btn-remove-image"
-                    onClick={() => handleInputChange("image", "")}
-                  >
-                    Remove Photo
-                  </button>
-                </div>
+              {imageTab === "file" ? (
+                formData.image && formData.image.startsWith("data:") ? (
+                  <div className="image-preview-container">
+                    <img src={formData.image} alt="Dish Preview" className="preview-img" />
+                    <button
+                      type="button"
+                      className="btn-remove-image"
+                      onClick={() => handleInputChange("image", "")}
+                    >
+                      Remove Photo
+                    </button>
+                  </div>
+                ) : (
+                  <div className="upload-drop-zone">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                    <span>Drag & Drop image here or</span>
+                    <label className="file-browse-btn">
+                      Browse File
+                      <input type="file" accept="image/*" onChange={(e) => {
+                        handleImageFileChange(e);
+                        handleInputChange("imageUrl", "");
+                      }} />
+                    </label>
+                  </div>
+                )
               ) : (
-                <div className="upload-drop-zone">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                  <span>Drag & Drop image here or</span>
-                  <label className="file-browse-btn">
-                    Browse File
-                    <input type="file" accept="image/*" onChange={handleImageFileChange} />
-                  </label>
+                <div>
+                  {formData.imageUrl ? (
+                    <div className="image-preview-container" style={{ marginBottom: "12px" }}>
+                      <img src={formData.imageUrl} alt="URL Preview" className="preview-img" onError={(e) => { e.target.style.display = 'none'; }} />
+                    </div>
+                  ) : null}
+                  <div className="field-group">
+                    <label>Direct Image Link (HTTPS URL)</label>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/photo-..."
+                      value={formData.imageUrl}
+                      onChange={(e) => {
+                        const url = e.target.value.trim();
+                        handleInputChange("imageUrl", url);
+                        handleInputChange("image", url);
+                      }}
+                    />
+                  </div>
                 </div>
               )}
-              <div className="field-group" style={{ marginTop: "10px" }}>
-                <input
-                  type="text"
-                  placeholder="Or paste image URL (https://...)"
-                  value={formData.image.startsWith("data:") ? "" : formData.image}
-                  onChange={(e) => handleInputChange("image", e.target.value.trim())}
-                />
-              </div>
             </div>
           </div>
 
@@ -427,51 +456,6 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
               <button type="button" className="btn-inline-add" onClick={handleAddAddOn}>
                 + Add
               </button>
-            </div>
-          </div>
-
-          {/* Section 7: Upsell Recommendations */}
-          <div className="form-section">
-            <div className="section-header-with-action">
-              <h3 className="section-title">Upsell Recommendations</h3>
-              <span className="sub-hint">Suggest pairings during checkout</span>
-            </div>
-            <div className="selected-upsells-list">
-              {formData.upsellItems.map((upsellId) => {
-                const upsellDish = allItems.find((i) => i.id === upsellId);
-                return (
-                  <div key={upsellId} className="upsell-item-row">
-                    <span>{upsellDish ? upsellDish.name : `Dish #${upsellId}`}</span>
-                    <button type="button" onClick={() => handleRemoveUpsell(upsellId)}>Remove</button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="upsell-search-container">
-              <input
-                type="text"
-                placeholder="Search dishes to pair..."
-                value={upsellSearch}
-                onChange={(e) => setUpsellSearch(e.target.value)}
-              />
-              {upsellSearch && (
-                <div className="upsell-search-dropdown">
-                  {availableUpsellDishes.length === 0 ? (
-                    <div className="dropdown-empty">No matching dishes found</div>
-                  ) : (
-                    availableUpsellDishes.map((dish) => (
-                      <div
-                        key={dish.id}
-                        className="dropdown-item-row"
-                        onClick={() => handleAddUpsell(dish.id)}
-                      >
-                        <span>{dish.name}</span>
-                        <strong>${Number(dish.price).toFixed(2)}</strong>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
             </div>
           </div>
 

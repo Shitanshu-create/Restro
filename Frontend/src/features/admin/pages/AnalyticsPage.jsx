@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useOrders } from "../hooks/useAdmin.js";
+import { useOrders, useMenu } from "../hooks/useAdmin.js";
 import DateRangeFilter, { getPresetRange } from "../components/DateRangeFilter.jsx";
 import "../styles/AnalyticsPage.css";
 
@@ -53,8 +53,11 @@ const SparklineChart = ({ points, color, fillId, gradientStart }) => {
 };
 
 const AnalyticsPage = () => {
-  const { orders, loading, error } = useOrders();
+  const { orders, loading: ordersLoading, error } = useOrders();
+  const { items: allMenuItems, categories, loading: menuLoading } = useMenu();
   const [dateRange, setDateRange] = useState(() => getPresetRange("today"));
+
+  const loading = ordersLoading || menuLoading;
 
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -91,8 +94,27 @@ const AnalyticsPage = () => {
     return hours.map((_, idx) => [idx * stepX, H - (hourCounts[idx] / maxVal) * (H - 40) - 20]);
   }, [filteredOrders]);
 
-  const worstItems = useMemo(() => {
+  // Combine menu items from categories + direct items
+  const menuList = useMemo(() => {
+    const list = [...allMenuItems];
+    categories.forEach((cat) => {
+      (cat.items || []).forEach((i) => {
+        if (!list.some((existing) => existing.id === i.id)) {
+          list.push(i);
+        }
+      });
+    });
+    return list;
+  }, [allMenuItems, categories]);
+
+  const { worstItems, bestItems } = useMemo(() => {
     const itemMap = {};
+
+    // Seed with all menu items at 0 orders
+    menuList.forEach((m) => {
+      itemMap[m.name] = { name: m.name, orders: 0, price: Number(m.price || 0) };
+    });
+
     filteredOrders.forEach((o) => {
       if (Array.isArray(o.items)) {
         o.items.forEach((i) => {
@@ -101,19 +123,35 @@ const AnalyticsPage = () => {
           const price = Number(i.price || 0);
           if (!itemMap[name]) itemMap[name] = { name, orders: 0, price };
           itemMap[name].orders += count;
+          if (price > 0) itemMap[name].price = price;
         });
       }
     });
-    return Object.values(itemMap)
+
+    const sortedAll = Object.values(itemMap);
+
+    const worst = [...sortedAll]
       .sort((a, b) => a.orders - b.orders)
       .slice(0, 5)
       .map((item) => ({
         name: item.name,
         orders: `${item.orders} orders`,
         price: `$${item.price.toFixed(2)}`,
-        change: "Low Volume"
+        change: item.orders === 0 ? "No Sales" : "Low Volume"
       }));
-  }, [filteredOrders]);
+
+    const best = [...sortedAll]
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 5)
+      .map((item) => ({
+        name: item.name,
+        orders: `${item.orders} orders`,
+        price: `$${item.price.toFixed(2)}`,
+        change: "Top Seller"
+      }));
+
+    return { worstItems: worst, bestItems: best };
+  }, [filteredOrders, menuList]);
 
   return (
     <div className="analytics-page">
@@ -160,9 +198,38 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* Row 2: Worst Selling Items */}
-      <div className="analytics-bottom-row" style={{ marginTop: "24px" }}>
-        <div className="analytics-card" style={{ gridColumn: "1 / -1" }}>
+      {/* Row 2: Highest & Lowest Selling Items */}
+      <div className="analytics-bottom-row" style={{ marginTop: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+        {/* Highest Selling Items */}
+        <div className="analytics-card">
+          <div className="wsi-header">
+            <div>
+              <h2 className="analytics-section-title">Highest Selling Items</h2>
+              <p className="analytics-section-subtitle">Dishes with highest order volume in selected period</p>
+            </div>
+            <div className="needs-attention-badge" style={{ background: "#ecfdf5", color: "#047857" }}>🔥 Top Performers</div>
+          </div>
+          <div className="wsi-list">
+            {loading ? (
+              <div style={{ padding: "20px", textAlign: "center", color: "var(--color-text-muted)" }}>Loading analytics...</div>
+            ) : bestItems.length === 0 ? (
+              <div style={{ padding: "20px", textAlign: "center", color: "var(--color-text-muted)" }}>No order data available</div>
+            ) : (
+              bestItems.map((item) => (
+                <div key={item.name} className="wsi-row">
+                  <div className="wsi-details">
+                    <span className="wsi-name">{item.name}</span>
+                    <span className="wsi-meta">{item.orders} · {item.price}</span>
+                  </div>
+                  <span className="wsi-change" style={{ background: "#ecfdf5", color: "#047857" }}>{item.change}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Lowest Selling Items */}
+        <div className="analytics-card">
           <div className="wsi-header">
             <div>
               <h2 className="analytics-section-title">Lowest Selling Items</h2>

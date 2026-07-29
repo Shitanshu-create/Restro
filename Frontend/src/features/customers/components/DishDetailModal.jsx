@@ -1,22 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/DishDetailModal.css";
 
-const DishDetailModal = ({ isOpen, onClose, dish, allItems, onAddToCart }) => {
+const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [quantity, setQuantity] = useState(1);
 
-  if (!isOpen || !dish) return null;
+  useEffect(() => {
+    if (dish && Array.isArray(dish.variants) && dish.variants.length > 0) {
+      setSelectedVariant(dish.variants[0]);
+    } else {
+      setSelectedVariant(null);
+    }
+    setSelectedAddOns([]);
+    setQuantity(1);
+  }, [dish, isOpen]);
 
-  const basePrice = selectedVariant ? selectedVariant.price : Number(dish.price || 0);
-  const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + Number(a.price || 0), 0);
-  const unitPrice = basePrice + addOnsTotal;
-  const totalPrice = unitPrice * quantity;
+  if (!isOpen || !dish) return null;
 
   const variants = Array.isArray(dish.variants) ? dish.variants : [];
   const addOns = Array.isArray(dish.addOns) ? dish.addOns : [];
-  const upsellIds = Array.isArray(dish.upsellItems) ? dish.upsellItems : [];
-  const upsellDishes = allItems.filter((i) => upsellIds.includes(i.id));
+
+  const basePrice = selectedVariant ? Number(selectedVariant.price || 0) : Number(dish.price || 0);
+  const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + Number(a.price || 0), 0);
+  const unitPrice = basePrice + addOnsTotal;
+  const totalPrice = unitPrice * quantity;
+  const isSubmitDisabled = variants.length > 0 && !selectedVariant;
 
   const toggleAddOn = (addon) => {
     setSelectedAddOns((prev) =>
@@ -29,7 +38,9 @@ const DishDetailModal = ({ isOpen, onClose, dish, allItems, onAddToCart }) => {
   const handleAddSubmit = () => {
     onAddToCart({
       ...dish,
+      isCustomized: true,
       price: unitPrice,
+      variantPrice: selectedVariant ? selectedVariant.price : null,
       quantity: selectedVariant ? selectedVariant.name : "Full",
       selectedAddOns,
       count: quantity
@@ -121,30 +132,6 @@ const DishDetailModal = ({ isOpen, onClose, dish, allItems, onAddToCart }) => {
               </div>
             </div>
           )}
-
-          {/* Upsell Recommendations */}
-          {upsellDishes.length > 0 && (
-            <div className="customization-group">
-              <h3>Frequently Ordered Together</h3>
-              <div className="upsell-dishes-scroll">
-                {upsellDishes.map((upDish) => (
-                  <div key={upDish.id} className="upsell-dish-card">
-                    <div className="upsell-dish-info">
-                      <span className="upsell-name">{upDish.name}</span>
-                      <span className="upsell-price">${Number(upDish.price).toFixed(2)}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="upsell-add-btn"
-                      onClick={() => onAddToCart({ ...upDish, count: 1 })}
-                    >
-                      + ADD
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Sheet Footer Bar */}
@@ -154,8 +141,13 @@ const DishDetailModal = ({ isOpen, onClose, dish, allItems, onAddToCart }) => {
             <span>{quantity}</span>
             <button onClick={() => setQuantity((q) => q + 1)}>+</button>
           </div>
-          <button className="add-to-cart-submit-btn" onClick={handleAddSubmit}>
-            Add to Order • ${totalPrice.toFixed(2)}
+          <button
+            className="add-to-cart-submit-btn"
+            onClick={handleAddSubmit}
+            disabled={isSubmitDisabled}
+            style={{ opacity: isSubmitDisabled ? 0.6 : 1, cursor: isSubmitDisabled ? "not-allowed" : "pointer" }}
+          >
+            {isSubmitDisabled ? "Select Portion Size" : `Add to Order • $${totalPrice.toFixed(2)}`}
           </button>
         </div>
       </div>

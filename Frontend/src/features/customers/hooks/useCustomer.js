@@ -34,6 +34,25 @@ export function useCustomerAuth() {
     const [customer, setCustomer] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const token = localStorage.getItem("customerToken");
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                if (payload.exp * 1000 > Date.now()) {
+                    setCustomer({
+                        customer_id: payload.customerId,
+                        name: payload.name,
+                        phoneNo: payload.phone
+                    });
+                } else {
+                    localStorage.removeItem("customerToken");
+                }
+            } catch {
+                localStorage.removeItem("customerToken");
+            }
+        }
+    }, []);
 
     const handleSendOtp = async (phone) => {
         setLoading(true);

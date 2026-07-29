@@ -79,6 +79,40 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                     </div>
                 </div>
 
+                {/* Detailed Settlement & Audit Info Card */}
+                <div className="saas-info-card" style={{
+                    margin: "16px 0",
+                    padding: "14px 18px",
+                    background: "#f8fafc",
+                    borderRadius: "12px",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    fontSize: "13px"
+                }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ color: "#64748b", fontWeight: "600" }}>Ordered Time:</span>
+                        <strong style={{ color: "#0f172a" }}>
+                            {order.createdAt ? new Date(order.createdAt).toLocaleString() : "N/A"}
+                        </strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ color: "#64748b", fontWeight: "600" }}>Ordered By (Customer):</span>
+                        <strong style={{ color: "#0f172a" }}>{customerDisplay}</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ color: "#64748b", fontWeight: "600" }}>Payment Settlement:</span>
+                        <strong style={{ color: paymentStatus === "Paid" ? "#15803d" : "#c2410c" }}>
+                            {paymentMethod === "Online" || paymentMethod === "UPI"
+                                ? "Settled via Online"
+                                : paymentStatus === "Paid"
+                                    ? `Payment Received by ${order.paidBy || "Staff"}`
+                                    : "Pending Cash Collection"}
+                        </strong>
+                    </div>
+                </div>
+
                 {/* Ordered Items List */}
                 <div className="saas-items-section">
                     <h3 className="saas-section-title">Ordered Items ({itemsList.length || 1})</h3>

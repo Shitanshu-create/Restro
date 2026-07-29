@@ -12,9 +12,9 @@ const api = axios.create({
 
 
 
-// Interceptor to attach Bearer token if present in sessionStorage
+// Interceptor to attach Bearer token if present in localStorage
 api.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem("customerToken");
+    const token = localStorage.getItem("customerToken");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -68,7 +68,7 @@ export const verifyOtp = async ({ phone, otp, name }) => {
     try {
         const res = await api.post("/api/customer/verifyOtp", { phone, otp, name });
         if (res.data?.success && res.data?.token) {
-            sessionStorage.setItem("customerToken", res.data.token);
+            localStorage.setItem("customerToken", res.data.token);
         }
         return res.data;
     } catch (err) {
@@ -104,10 +104,10 @@ export const getMyOrders = async () => {
 export const logoutCustomer = async () => {
     try {
         const res = await api.post("/api/customer/logout");
-        sessionStorage.removeItem("customerToken");
+        localStorage.removeItem("customerToken");
         return res.data;
     } catch (err) {
-        sessionStorage.removeItem("customerToken");
+        localStorage.removeItem("customerToken");
         return { success: false, message: getErrorMessage(err, "Logout failed") };
     }
 };
