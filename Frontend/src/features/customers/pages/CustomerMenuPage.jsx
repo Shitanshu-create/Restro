@@ -1,11 +1,129 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMenu, useCustomerOrders, useCustomerAuth } from "../hooks/useCustomer.js";
 import { resolveTable } from "../api/customer.api.js";
 import CartDrawer from "../components/CartDrawer.jsx";
 import OtpModal from "../components/OtpModal.jsx";
 import MyOrdersModal from "../components/MyOrdersModal.jsx";
 import DishDetailModal from "../components/DishDetailModal.jsx";
+import Carousel from "../utils/Carousel.jsx";
+import indianBanner from "../../../../assets/indian.png";
+import chineseBanner from "../../../../assets/chinese.png";
 import "../styles/CustomerMenuPage.css";
+
+const bannerImages = [
+  { id: 1, src: indianBanner, alt: "Indian Specialities - Authentic Flavors & Rich Spices" },
+  { id: 2, src: chineseBanner, alt: "Chinese Delights - Wok Tossed & Delicious" }
+];
+
+const categoryIconPaths = {
+  all: (
+    <>
+      <rect x="4" y="4" width="6" height="6" rx="1" />
+      <rect x="14" y="4" width="6" height="6" rx="1" />
+      <rect x="4" y="14" width="6" height="6" rx="1" />
+      <rect x="14" y="14" width="6" height="6" rx="1" />
+    </>
+  ),
+  veg: (
+    <>
+      <path d="M12 20V9" />
+      <path d="M12 10C8 4 4 4 3 4c0 5 4 8 9 6Z" />
+      <path d="M12 11c4-6 8-6 9-6 0 5-4 8-9 6Z" />
+    </>
+  ),
+  "non-veg": (
+    <>
+      <path d="M7.2 11.4c-2.4 2.4-3 5.7-1.3 7.4 1.7 1.7 5 1.1 7.4-1.3l3.9-3.9-6.1-6.1-3.9 3.9Z" />
+      <path d="M13.9 6.2c1.4-1.4 3.7-1.4 5.1 0s1.4 3.7 0 5.1l-1.8 1.8-5.1-5.1 1.8-1.8Z" />
+      <path d="m17 5 2-2" />
+      <path d="m20 8 2-2" />
+    </>
+  ),
+  indian: (
+    <>
+      <path d="M5 12h14" />
+      <path d="M7 12h10l-1.2 5.2A3 3 0 0 1 12.9 20h-1.8a3 3 0 0 1-2.9-2.8L7 12Z" />
+      <path d="M8 8c0-1.2 1-1.6 1-2.8" />
+      <path d="M12 8c0-1.2 1-1.6 1-2.8" />
+      <path d="M16 8c0-1.2 1-1.6 1-2.8" />
+    </>
+  ),
+  chinese: (
+    <>
+      <path d="M7 10h10" />
+      <path d="M8 10v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8" />
+      <path d="M9 7c0-1.2 1-1.6 1-2.8" />
+      <path d="M12 7c0-1.2 1-1.6 1-2.8" />
+      <path d="M15 7c0-1.2 1-1.6 1-2.8" />
+    </>
+  ),
+  italian: (
+    <>
+      <path d="M6 16h12" />
+      <path d="M8 16a4 4 0 0 1 8 0" />
+      <path d="M12 9V7" />
+      <path d="M10 7h4" />
+      <path d="M7 20h10" />
+    </>
+  ),
+  dishes: (
+    <>
+      <path d="M4 18h16" />
+      <path d="M6 16a6 6 0 0 1 12 0" />
+      <path d="M12 7V5" />
+      <path d="M10 5h4" />
+    </>
+  )
+};
+
+const getCategoryKey = (name = "") => {
+  const value = name.toLowerCase();
+  if (value.includes("veg") && !value.includes("non")) return "veg";
+  if (value.includes("non")) return "non-veg";
+  if (value.includes("chinese")) return "chinese";
+  if (value.includes("indian")) return "indian";
+  if (value.includes("italian")) return "italian";
+  if (value.includes("dish")) return "dishes";
+  return "dishes";
+};
+
+const CategoryIcon = ({ type }) => (
+  <svg className="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {categoryIconPaths[type] || categoryIconPaths.dishes}
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+  </svg>
+);
+
+const BagIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 8h12l-1 12H7L6 8Z" />
+    <path d="M9 8a3 3 0 0 1 6 0" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);
+
+const ArrowRightIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12h14" />
+    <path d="m13 6 6 6-6 6" />
+  </svg>
+);
+
+const DishTag = ({ isVeg }) => (
+  <span className={`dish-type-tag ${isVeg ? "veg" : "nonveg"}`}>{isVeg ? "Veg" : "Non-Veg"}</span>
+);
 
 const CustomerMenuPage = () => {
   const { categories, loading: menuLoading, error: menuError } = useMenu();
@@ -24,45 +142,37 @@ const CustomerMenuPage = () => {
   const [orderSuccessMsg, setOrderSuccessMsg] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [tableNo, setTableNo] = useState("T-01");
+  const [tableNo, setTableNo] = useState(() => new URLSearchParams(window.location.search).get("table") || "T-01");
 
-  // Resolve QR token or table param from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") || params.get("qr");
-    const directTable = params.get("table");
-    if (directTable) {
-      setTableNo(directTable);
-    } else if (token) {
+    if (!params.get("table") && token) {
       resolveTable(token).then((res) => {
-        if (res.success && res.tableNumber) {
-          setTableNo(res.tableNumber);
-        }
+        if (res.success && res.tableNumber) setTableNo(res.tableNumber);
       });
     }
   }, []);
 
-  // Build category list from backend categories
-  const categoryList = [
-    { id: "all", name: "All Dishes", count: 0 },
+  const categoryList = useMemo(() => [
+    { id: "all", name: "All Dishes", count: 0, icon: "all" },
     ...categories.map((cat) => ({
       id: String(cat._id),
       name: cat.name,
-      count: cat.items ? cat.items.length : 0
+      count: cat.items ? cat.items.length : 0,
+      icon: getCategoryKey(cat.name)
     }))
-  ];
+  ], [categories]);
 
-  // Deduplicate items across all categories for searching & filtering
-  const allItems = React.useMemo(() => {
+  const selectedCategory = categoryList.find((cat) => cat.id === selectedCategoryId);
+  const isAllView = selectedCategoryId === "all";
+
+  const allItems = useMemo(() => {
     const dishMap = new Map();
     categories.forEach((cat) => {
       (cat.items || []).forEach((item) => {
         if (!dishMap.has(item.id)) {
-          dishMap.set(item.id, {
-            ...item,
-            categoryId: String(cat._id),
-            categoryName: cat.name
-          });
+          dishMap.set(item.id, { ...item, categoryId: String(cat._id), categoryName: cat.name });
         }
       });
     });
@@ -71,26 +181,22 @@ const CustomerMenuPage = () => {
 
   const filteredItems = allItems.filter((item) => {
     const matchCategory = selectedCategoryId === "all" || String(item.categoryId) === String(selectedCategoryId);
-    const matchDiet =
-      dietaryFilter === "all" ||
-      (dietaryFilter === "veg" && item.isVeg) ||
-      (dietaryFilter === "non-veg" && !item.isVeg);
-    const matchSearch =
-      !searchQuery ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchDiet = dietaryFilter === "all" || (dietaryFilter === "veg" && item.isVeg) || (dietaryFilter === "non-veg" && !item.isVeg);
+    const query = searchQuery.toLowerCase();
+    const matchSearch = !query || item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query);
     return matchCategory && matchDiet && matchSearch;
   });
 
-  // Cart Handlers
+  const bestSellerItems = useMemo(() => {
+    const marked = allItems.filter((item) => item.isBestseller);
+    return marked.length ? marked : allItems;
+  }, [allItems]);
+
   const handleAddToCart = (item) => {
-    // If item was configured via customization modal, add directly to cart
     if (item.isCustomized) {
       setCart((prev) => {
         const itemKey = `${item.id}_${item.quantity}_${JSON.stringify(item.selectedAddOns || [])}`;
-        const existingIdx = prev.findIndex(
-          (i) => `${i.id}_${i.quantity}_${JSON.stringify(i.selectedAddOns || [])}` === itemKey
-        );
+        const existingIdx = prev.findIndex((i) => `${i.id}_${i.quantity}_${JSON.stringify(i.selectedAddOns || [])}` === itemKey);
         if (existingIdx > -1) {
           const updated = [...prev];
           updated[existingIdx].count += item.count || 1;
@@ -101,18 +207,14 @@ const CustomerMenuPage = () => {
       return;
     }
 
-    // If dish has portion variants or add-ons, open customization modal sheet
     if ((item.variants && item.variants.length > 0) || (item.addOns && item.addOns.length > 0)) {
       setSelectedDishForCustomization(item);
       return;
     }
 
-    // Simple fixed-price item with no options
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, count: i.count + (item.count || 1) } : i));
-      }
+      if (existing) return prev.map((i) => (i.id === item.id ? { ...i, count: i.count + (item.count || 1) } : i));
       return [...prev, { ...item, count: item.count || 1, quantity: item.quantity || "Full" }];
     });
   };
@@ -125,9 +227,7 @@ const CustomerMenuPage = () => {
     setCart((prev) => prev.map((i) => (i.id === itemId ? { ...i, count: newCount } : i)));
   };
 
-  const handleRemoveItem = (itemId) => {
-    setCart((prev) => prev.filter((i) => i.id !== itemId));
-  };
+  const handleRemoveItem = (itemId) => setCart((prev) => prev.filter((i) => i.id !== itemId));
 
   const executeOrderSubmission = async () => {
     setIsSubmitting(true);
@@ -138,11 +238,7 @@ const CustomerMenuPage = () => {
       variantPrice: i.variantPrice || null,
       count: i.count || 1
     }));
-    const res = await handlePlaceOrder({
-      tableNo,
-      items: orderItems,
-      paymentMode
-    });
+    const res = await handlePlaceOrder({ tableNo, items: orderItems, paymentMode });
     setIsSubmitting(false);
     if (res.success) {
       if (paymentMode === "Online" && res.razorpay) {
@@ -158,16 +254,14 @@ const CustomerMenuPage = () => {
     }
   };
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) return resolve(true);
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
+  const loadRazorpayScript = () => new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 
   const openRazorpayModal = async (razorpayData, orderData) => {
     await loadRazorpayScript();
@@ -185,25 +279,17 @@ const CustomerMenuPage = () => {
           razorpay_payment_id: response.razorpay_payment_id,
           razorpay_signature: response.razorpay_signature
         });
-        if (verifyRes.success) {
-          setOrderSuccessMsg(`Payment verified & Order #${orderData.orderId} placed for ${tableNo}!`);
-        } else {
-          setOrderSuccessMsg(`Order #${orderData.orderId} placed for ${tableNo}! Payment status: Pending.`);
-        }
+        if (verifyRes.success) setOrderSuccessMsg(`Payment verified & Order #${orderData.orderId} placed for ${tableNo}!`);
+        else setOrderSuccessMsg(`Order #${orderData.orderId} placed for ${tableNo}! Payment status: Pending.`);
         setCart([]);
         setIsCartOpen(false);
         setTimeout(() => setOrderSuccessMsg(null), 8000);
       },
-      prefill: {
-        name: customer?.name || "",
-        contact: customer?.phoneNo || customer?.phone || ""
-      },
+      prefill: { name: customer?.name || "", contact: customer?.phoneNo || customer?.phone || "" },
       theme: { color: "#FF7A1A" }
     };
-    if (window.Razorpay) {
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } else {
+    if (window.Razorpay) new window.Razorpay(options).open();
+    else {
       setCart([]);
       setIsCartOpen(false);
       setOrderSuccessMsg(`Order #${orderData.orderId} placed for ${tableNo}! (Mock Payment Mode)`);
@@ -232,220 +318,230 @@ const CustomerMenuPage = () => {
     return sum + (unitPrice * (i.quantity === "Half" ? 0.5 : 1)) * i.count;
   }, 0);
 
+  const renderAddControl = (dish, compact = false) => {
+    const inCart = cart.find((i) => i.id === dish.id);
+    if (!dish.isAvailable) return <span className="sold-out-badge">Sold Out</span>;
+    if (inCart) {
+      return (
+        <div className={`stepper-pill ${compact ? "compact" : ""}`} onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count - 1)} aria-label={`Remove one ${dish.name}`}>-</button>
+          <span>{inCart.count}</span>
+          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count + 1)} aria-label={`Add one ${dish.name}`}>+</button>
+        </div>
+      );
+    }
+    return (
+      <button type="button" className={`btn-add-action ${compact ? "compact" : ""}`} onClick={(e) => { e.stopPropagation(); handleAddToCart(dish); }}>
+        + Add
+      </button>
+    );
+  };
+
+  const handleDishFilterClick = (filter) => {
+    if (filter.type === "diet") {
+      setDietaryFilter(filter.id);
+      return;
+    }
+    setSelectedCategoryId(filter.id);
+    setDietaryFilter("all");
+  };
+
+  const allDishFilters = [
+    { id: "all", label: "All Dishes", type: "category" },
+    { id: "veg", label: "Veg", type: "diet" },
+    { id: "non-veg", label: "Non-Veg", type: "diet" },
+    ...categoryList.filter((cat) => cat.id !== "all").map((cat) => ({
+      id: cat.id,
+      label: cat.name,
+      type: "category"
+    }))
+  ];
+
   return (
-    <div className="customer-mobile-shell">
-      {/* 1. Header Navigation Bar */}
-      <header className="mobile-header-bar">
-        <div className="mobile-brand">
-          <div className="brand-dot-logo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
-              <path d="M12 8v4l3 3" />
-            </svg>
-          </div>
+    <div className="customer-menu-page">
+      <header className="customer-menu-header">
+        <div className="customer-brand">
+          <div className="brand-dot-logo"><ClockIcon /></div>
           <div>
             <h1 className="mobile-brand-title">Restro Digital</h1>
             <span className="mobile-table-tag">Table {tableNo}</span>
           </div>
         </div>
-
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className="btn-orders-pill"
-            onClick={() => {
-              reloadOrders();
-              setShowOrdersModal(true);
-            }}
-          >
+          <button type="button" className="btn-orders-pill" onClick={() => { reloadOrders(); setShowOrdersModal(true); }}>
             My Orders {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
           </button>
-
-          <button
-            type="button"
-            className="btn-cart-pill"
-            onClick={() => setIsCartOpen(true)}
-            aria-label="Open cart"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
+          <button type="button" className="btn-cart-pill" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
+            <BagIcon />
             {totalCartCount > 0 && <span className="pill-badge primary">{totalCartCount}</span>}
           </button>
         </div>
       </header>
 
-      {/* Banners */}
       {orderSuccessMsg && (
-        <div className="mobile-success-toast">
+        <div className="mobile-success-toast" role="status" aria-live="polite">
           <span>{orderSuccessMsg}</span>
-          <button onClick={() => setOrderSuccessMsg(null)}>×</button>
+          <button type="button" onClick={() => setOrderSuccessMsg(null)} aria-label="Dismiss success message">x</button>
         </div>
       )}
-      {actionError && <div className="mobile-error-toast">{actionError}</div>}
+      {(actionError || menuError) && <div className="mobile-error-toast" role="alert">{actionError || menuError}</div>}
 
-      {/* 2. Controls & Search */}
-      <div className="mobile-controls-container">
-        <div className="mobile-search-box">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search dishes or cuisines..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+      <div className="customer-menu-layout">
+        <aside className="customer-category-rail shared-sidebar" aria-label="Menu categories">
+          <div className="rail-category-list">
+            {categoryList.map((cat) => (
+              <button key={cat.id} type="button" className={`rail-category-btn ${selectedCategoryId === cat.id ? "active" : ""}`} onClick={() => { setSelectedCategoryId(cat.id); setDietaryFilter("all"); }}>
+                <CategoryIcon type={cat.icon} />
+                <span>{cat.id === "all" ? "All Dishes" : cat.name}</span>
+              </button>
+            ))}
+          </div>
+          {/* <div className="rail-promo-card" aria-hidden="true">
+            <CategoryIcon type="indian" />
+            <strong>Great food<br /><span>Great mood!</span></strong>
+            <i />
+            <p>Enjoy your meal with Restro Digital.</p>
+          </div> */}
+        </aside>
 
-        <div className="mobile-diet-pills">
-          {["all", "veg", "non-veg"].map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={`diet-switch-pill ${dietaryFilter === d ? "active" : ""}`}
-              onClick={() => setDietaryFilter(d)}
-            >
-              {d === "all" ? "All" : d === "veg" ? "🌱 Veg" : "🍖 Non-Veg"}
-            </button>
-          ))}
-        </div>
+        <main className="customer-menu-main">
+          <section className="top-controls-row" aria-label="Search">
+            <label className="mobile-search-box">
+              <SearchIcon />
+              <span className="sr-only">Search dishes</span>
+              <input type="text" placeholder="Search for dishes, cuisines..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </label>
+          </section>
+
+          <nav className="mobile-category-tiles" aria-label="Quick categories">
+            {categoryList.slice(0, 5).map((cat) => (
+              <button key={cat.id} type="button" className={`mobile-category-tile ${selectedCategoryId === cat.id ? "active" : ""}`} onClick={() => { setSelectedCategoryId(cat.id); setDietaryFilter("all"); }}>
+                <CategoryIcon type={cat.icon} />
+                <span>{cat.id === "all" ? "All" : cat.name}</span>
+              </button>
+            ))}
+          </nav>
+
+          {isAllView && (
+            <section className="customer-hero-panel">
+              <Carousel
+                items={bannerImages}
+                autoPlay={true}
+                autoPlayInterval={3500}
+                showDots={true}
+                showArrows={true}
+                itemsPerView={1}
+                className="banner-carousel"
+              />
+            </section>
+          )}
+
+          {isAllView && (
+            <section className="bestseller-section">
+              <div className="section-title-row">
+                <h2>BestSeller Items</h2>
+                <button type="button" onClick={() => document.querySelector(".all-dishes-section")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                  View all <ArrowRightIcon />
+                </button>
+              </div>
+              {menuLoading ? (
+                <div className="mobile-loading-state">Loading delicious menu...</div>
+              ) : (
+                <Carousel
+                  items={bestSellerItems}
+                  autoPlay={false}
+                  showDots={true}
+                  showArrows={true}
+                  itemsPerView={{ mobile: 1.15, tablet: 2.2, desktop: 3.5 }}
+                  className="bestseller-carousel"
+                  gap={16}
+                  renderItem={(dish) => (
+                    <article key={dish.id} className="bestseller-card" onClick={() => setSelectedDishForCustomization(dish)}>
+                      <div className="bestseller-image-wrap">
+                        {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
+                        <DishTag isVeg={dish.isVeg} />
+                      </div>
+                      <div className="bestseller-card-body">
+                        <h3>{dish.name}</h3>
+                        <p>{dish.description || "Delicately prepared with fresh ingredients."}</p>
+                        <div className="dish-card-footer">
+                          <strong>${Number(dish.price || 0).toFixed(2)}</strong>
+                          {renderAddControl(dish, true)}
+                        </div>
+                      </div>
+                    </article>
+                  )}
+                />
+              )}
+            </section>
+          )}
+
+          <section className="all-dishes-section">
+            <div className="all-dishes-head">
+              <div>
+                <h2>{isAllView ? "All Dishes" : `${selectedCategory?.name || "Category"} Dishes`}</h2>
+                {!isAllView && <p>Authentic flavors, rich spices, unforgettable taste.</p>}
+              </div>
+              <div className="dish-filter-pills">
+                {allDishFilters.map((filter) => (
+                  <button
+                    key={`${filter.type}-${filter.id}`}
+                    type="button"
+                    className={`diet-switch-pill ${(filter.type === "diet" ? dietaryFilter === filter.id : selectedCategoryId === filter.id) ? "active" : ""}`}
+                    onClick={() => handleDishFilterClick(filter)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {menuLoading ? (
+              <div className="mobile-loading-state">Loading delicious menu...</div>
+            ) : filteredItems.length === 0 ? (
+              <div className="mobile-empty-state">No dishes match your selected filter</div>
+            ) : (
+              <div className="all-dishes-list">
+                {filteredItems.map((dish) => (
+                  <article key={dish.id} className="swiggy-mobile-dish-card" onClick={() => setSelectedDishForCustomization(dish)}>
+                    <div className="dish-card-image-col">
+                      {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
+                      <DishTag isVeg={dish.isVeg} />
+                    </div>
+                    <div className="dish-card-left">
+                      <h3 className="dish-card-title">{dish.name}</h3>
+                      <p className="dish-desc-snippet">{dish.description || "Delicately prepared with fresh ingredients."}</p>
+                      <div className="dish-card-footer">
+                        <strong className="dish-price-text">${Number(dish.price || 0).toFixed(2)}</strong>
+                        {dish.discountPrice > 0 && <span className="dish-orig-price">${Number(dish.discountPrice).toFixed(2)}</span>}
+                        {renderAddControl(dish, true)}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
       </div>
 
-      {/* 3. Sticky Horizontal Categories Tab Bar */}
-      <nav className="mobile-sticky-categories-bar">
-        <div className="categories-scroll-wrapper">
-          {categoryList.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              className={`mobile-cat-pill ${selectedCategoryId === cat.id ? "active" : ""}`}
-              onClick={() => setSelectedCategoryId(cat.id)}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-      </nav>
-
-      {/* 4. Swiggy/Zomato Style Dish Cards Grid */}
-      <main className="mobile-dishes-list">
-        {menuLoading ? (
-          <div className="mobile-loading-state">Loading delicious menu...</div>
-        ) : filteredItems.length === 0 ? (
-          <div className="mobile-empty-state">No dishes match your selected filter</div>
-        ) : (
-          filteredItems.map((dish) => {
-            const inCart = cart.find((i) => i.id === dish.id);
-            return (
-              <div key={dish.id} className="swiggy-mobile-dish-card" onClick={() => setSelectedDishForCustomization(dish)}>
-                {/* Left Dish Metadata */}
-                <div className="dish-card-left">
-                  <div className="veg-badge-row">
-                    <span className={`veg-dot-sm ${dish.isVeg ? "is-veg" : "is-nonveg"}`} />
-                    {dish.isBestseller && <span className="bestseller-mini-tag">Bestseller</span>}
-                  </div>
-                  <h3 className="dish-card-title">{dish.name}</h3>
-                  <div className="dish-card-price-row">
-                    <strong className="dish-price-text">${Number(dish.price).toFixed(2)}</strong>
-                    {dish.discountPrice > 0 && (
-                      <span className="dish-orig-price">${Number(dish.discountPrice).toFixed(2)}</span>
-                    )}
-                  </div>
-                  <p className="dish-desc-snippet">{dish.description || "Delicately prepared with fresh ingredients."}</p>
-                </div>
-
-                {/* Right Image + ADD Button */}
-                <div className="dish-card-right">
-                  <div className="dish-square-image-box">
-                    {dish.image ? (
-                      <img src={dish.image} alt={dish.name} className="dish-square-img" />
-                    ) : (
-                      <div className="dish-placeholder-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 2a10 10 0 0 0 0 20" />
-                        </svg>
-                      </div>
-                    )}
-
-                    {/* Stepper / ADD Button Overlay */}
-                    <div className="add-button-overlay" onClick={(e) => e.stopPropagation()}>
-                      {!dish.isAvailable ? (
-                        <span className="sold-out-badge">Sold Out</span>
-                      ) : inCart ? (
-                        <div className="stepper-pill">
-                          <button onClick={() => handleUpdateQuantity(dish.id, inCart.count - 1)}>-</button>
-                          <span>{inCart.count}</span>
-                          <button onClick={() => handleUpdateQuantity(dish.id, inCart.count + 1)}>+</button>
-                        </div>
-                      ) : (
-                        <button className="btn-add-action" onClick={() => handleAddToCart(dish)}>
-                          + ADD
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </main>
-
-      {/* 5. Fixed Bottom Floating Cart Bar */}
       {totalCartCount > 0 && (
         <div className="floating-mobile-cart-bar">
-          <div className="floating-cart-info">
-            <span className="floating-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
-            <strong className="floating-cart-total">${totalCartPrice.toFixed(2)}</strong>
-          </div>
-          <button className="floating-cart-btn" onClick={() => setIsCartOpen(true)}>
-            View Order Cart →
+          <div className="cart-mini-icon"><BagIcon /><span>{totalCartCount}</span></div>
+          <span className="floating-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
+          <span className="floating-divider" />
+          <span className="floating-subtotal">Subtotal</span>
+          <strong className="floating-cart-total">${totalCartPrice.toFixed(2)}</strong>
+          <button type="button" className="floating-cart-btn" onClick={() => setIsCartOpen(true)}>
+            View Cart <ArrowRightIcon />
           </button>
         </div>
       )}
 
-      {/* Cart Drawer */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cart}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-        tableNo={tableNo}
-        paymentMode={paymentMode}
-        onPaymentModeChange={setPaymentMode}
-        onPlaceOrder={handleConfirmOrder}
-        isSubmitting={isSubmitting}
-      />
-
-      {/* OTP Verification Modal */}
-      {showOtpModal && (
-        <OtpModal
-          onSuccess={onOtpVerified}
-          onClose={() => setShowOtpModal(false)}
-        />
-      )}
-
-      {/* My Orders Modal */}
-      <MyOrdersModal
-        isOpen={showOrdersModal}
-        onClose={() => setShowOrdersModal(false)}
-        orders={orders}
-        loading={orderLoading}
-        onRefresh={reloadOrders}
-      />
-
-      {/* Dish Customization Sheet Modal */}
-      <DishDetailModal
-        isOpen={!!selectedDishForCustomization}
-        onClose={() => setSelectedDishForCustomization(null)}
-        dish={selectedDishForCustomization}
-        onAddToCart={handleAddToCart}
-      />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cartItems={cart} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} tableNo={tableNo} paymentMode={paymentMode} onPaymentModeChange={setPaymentMode} onPlaceOrder={handleConfirmOrder} isSubmitting={isSubmitting} />
+      {showOtpModal && <OtpModal onSuccess={onOtpVerified} onClose={() => setShowOtpModal(false)} />}
+      <MyOrdersModal isOpen={showOrdersModal} onClose={() => setShowOrdersModal(false)} orders={orders} loading={orderLoading} onRefresh={reloadOrders} />
+      <DishDetailModal isOpen={!!selectedDishForCustomization} onClose={() => setSelectedDishForCustomization(null)} dish={selectedDishForCustomization} onAddToCart={handleAddToCart} />
     </div>
   );
 };

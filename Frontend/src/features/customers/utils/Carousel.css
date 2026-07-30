@@ -1,0 +1,148 @@
+/* Reusable GSAP-Powered App Carousel Styles */
+.app-carousel-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.carousel-viewport {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.carousel-track {
+  display: flex;
+  width: 100%;
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+.carousel-slide {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Default Image Styling inside Banner Carousel */
+.carousel-img {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Banner Carousel Customization */
+.banner-carousel .carousel-viewport {
+  border-radius: 20px;
+}
+
+.banner-carousel .carousel-img {
+  height: 220px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+@media (min-width: 640px) {
+  .banner-carousel .carousel-img {
+    height: 300px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .banner-carousel .carousel-img {
+    height: 360px;
+  }
+}
+
+/* Arrow Buttons */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
+  opacity: 0.85;
+}
+
+.carousel-arrow:hover {
+  background: #ffffff;
+  color: #FF7A1A;
+  transform: translateY(-50%) scale(1.1);
+  opacity: 1;
+  box-shadow: 0 6px 18px rgba(255, 122, 26, 0.25);
+}
+
+.carousel-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-arrow-prev {
+  left: 12px;
+}
+
+.carousel-arrow-next {
+  right: 12px;
+}
+
+/* Dot Indicators */
+.carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: #cbd5e1;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-dot.active {
+  width: 24px;
+  background: #FF7A1A;
+  box-shadow: 0 2px 8px rgba(255, 122, 26, 0.4);
+}
+
+.carousel-dot:hover:not(.active) {
+  background: #94a3b8;
+}
+
+/* Responsive Tweaks */
+@media (max-width: 640px) {
+  .carousel-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  .carousel-arrow-prev {
+    left: 6px;
+  }
+  .carousel-arrow-next {
+    right: 6px;
+  }
+}
