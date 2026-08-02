@@ -50,6 +50,26 @@ export const removeTable = async (tableNumber) => {
 };
 
 
+export const refreshTableQr = async (tableNumber, qrImageBase64) => {
+    try {
+        const res = await api.patch("/api/admin/refreshQr", { tableNumber, qrImageBase64 });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to save QR image") };
+    }
+};
+
+
+export const regenerateTableQrToken = async (tableNumber) => {
+    try {
+        const res = await api.patch("/api/admin/regenerateQr", { tableNumber });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to regenerate QR token") };
+    }
+};
+
+
 
 // ── Menu - Categories ────────────────────────────────────────────────────────
 export const fetchAllCategories = async () => {
@@ -98,9 +118,9 @@ export const fetchAllItems = async () => {
 
 
 
-export const createItem = async ({ id, name, price, isVeg, isAvailable, image }) => {
+export const createItem = async (itemData) => {
     try {
-        const res = await api.post("/api/admin/createItem", { id, name, price, isVeg, isAvailable, image });
+        const res = await api.post("/api/admin/createItem", itemData);
         return res.data;
     } catch (err) {
         return { success: false, message: getErrorMessage(err, "Failed to create item") };

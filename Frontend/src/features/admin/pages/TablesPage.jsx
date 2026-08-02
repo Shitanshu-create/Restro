@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import QRCode from "qrcode";
 import StatCard from "../components/StatCard.jsx";
 import { useTables } from "../hooks/useAdmin.js";
+import { env } from "../../../components/config/env.js";
 import "../styles/TablesPage.css";
 
 
@@ -8,18 +10,23 @@ import "../styles/TablesPage.css";
 const FILTER_TABS = ["All", "Occupied", "Available"];
 
 const TablesPage = () => {
-    const { tables, loading, error, handleCreateTable, handleRemoveTable } = useTables();
+    const { tables, loading, error, handleCreateTable, handleRemoveTable, handleSaveQr, handleRegenerateQr } = useTables();
     const [activeTab, setActiveTab] = useState("All");
     const [showAddModal, setShowAddModal] = useState(false);
+    const [selectedQrTable, setSelectedQrTable] = useState(null);
+    const [qrDataUrl, setQrDataUrl] = useState("");
+    const [isGeneratingQr, setIsGeneratingQr] = useState(false);
     const [newCapacity, setNewCapacity] = useState("4");
     const [actionError, setActionError] = useState(null);
 
     const displayTables = tables.map((t) => ({
         id: t.tableNumber,
         tableNumber: t.tableNumber,
+        qrToken: t.qrToken || "N/A",
         name: `Table ${t.tableNumber.replace("T-", "")}`,
         status: t.isOccupied ? "Occupied" : "Available",
         capacity: t.capacity,
+        qrImageBase64: t.qrImageBase64 || null,
         qrUrl: t.qrUrl
     }));
 
@@ -29,6 +36,60 @@ const TablesPage = () => {
         if (activeTab === "All") return true;
         return t.status === activeTab;
     });
+
+    // Generate or fetch QR code when modal opens
+    useEffect(() => {
+        if (!selectedQrTable) {
+            setQrDataUrl("");
+            return;
+        }
+
+        const buildAndSaveQr = async () => {
+            setIsGeneratingQr(true);
+            try {
+                if (selectedQrTable.qrImageBase64) {
+                    setQrDataUrl(selectedQrTable.qrImageBase64);
+                } else {
+                    const clientUrl = env.clientUrl;
+                    const fullQrUrl = `${clientUrl}/customer/menu/${selectedQrTable.qrToken}`;
+                    const url = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
+                    setQrDataUrl(url);
+                    // Persist to DB asynchronously
+                    handleSaveQr(selectedQrTable.tableNumber, url);
+                }
+            } catch (err) {
+                console.error("QR Generation Failed:", err);
+            } finally {
+                setIsGeneratingQr(false);
+            }
+        };
+
+        buildAndSaveQr();
+    }, [selectedQrTable]);
+
+    const handleRefreshQrClick = async () => {
+        if (!selectedQrTable) return;
+        setIsGeneratingQr(true);
+        try {
+            const res = await handleRegenerateQr(selectedQrTable.tableNumber);
+            if (res.success && res.qrToken) {
+                const clientUrl = env.clientUrl;
+                const fullQrUrl = `${clientUrl}/customer/menu/${res.qrToken}`;
+                const newUrl = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
+                setQrDataUrl(newUrl);
+                await handleSaveQr(selectedQrTable.tableNumber, newUrl);
+                setSelectedQrTable((prev) => ({
+                    ...prev,
+                    qrToken: res.qrToken,
+                    qrImageBase64: newUrl
+                }));
+            }
+        } catch (err) {
+            console.error("QR Refresh Failed:", err);
+        } finally {
+            setIsGeneratingQr(false);
+        }
+    };
 
     const handleAddTableSubmit = async (e) => {
         e.preventDefault();
@@ -41,11 +102,13 @@ const TablesPage = () => {
         }
     };
 
-    const handleDeleteTable = async (tableNumber) => {
+    const handleDeleteTable = async (tableNumber, e) => {
+        e.stopPropagation();
         if (window.confirm(`Are you sure you want to remove ${tableNumber}?`)) {
             await handleRemoveTable(tableNumber);
         }
     };
+
     return (
         <div className="tables-page">
             {/* Page Header Bar */}
@@ -106,9 +169,17 @@ const TablesPage = () => {
             ) : (
                 <div className="tables-cards-grid">
                     {filteredTables.map((t) => (
-                        <div key={t.id} className="table-status-card">
+                        <div
+                            key={t.id}
+                            className="table-status-card"
+                            onClick={() => setSelectedQrTable(t)}
+                            title="Click to view & download Table QR Code"
+                        >
                             <div className="table-card-top-row">
-                                <span className="table-card-name">{t.name} ({t.id})</span>
+                                <div className="table-card-info-stack">
+                                    <span className="table-card-name">{t.name}</span>
+                                    <span className="table-card-token-sub">({t.qrToken})</span>
+                                </div>
                                 <span className={`table-status-pill pill-${t.status.toLowerCase()}`}>
                                     <span className="pill-dot" />
                                     {t.status}
@@ -117,7 +188,7 @@ const TablesPage = () => {
                             <div className="table-card-bottom-row" style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span className="table-card-time">Capacity: {t.capacity} Guests</span>
                                 <button
-                                    onClick={() => handleDeleteTable(t.tableNumber)}
+                                    onClick={(e) => handleDeleteTable(t.tableNumber, e)}
                                     style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
                                 >
                                     Delete
@@ -127,6 +198,69 @@ const TablesPage = () => {
                     ))}
                 </div>
             )}
+
+            {/* QR Code Preview Modal */}
+            {selectedQrTable && (
+                <div className="modal-backdrop" onClick={() => setSelectedQrTable(null)}>
+                    <div className="modal-content-card qr-modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div>
+                                <h3>{selectedQrTable.name} QR Code</h3>
+                                <p className="qr-modal-subtext">Scan to view customer menu</p>
+                            </div>
+                            <button className="modal-close-btn" onClick={() => setSelectedQrTable(null)}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="qr-preview-container">
+                            {isGeneratingQr ? (
+                                <div className="qr-loading-placeholder">Generating QR Code...</div>
+                            ) : qrDataUrl ? (
+                                <img src={qrDataUrl} alt={`${selectedQrTable.name} QR Code`} className="qr-preview-img" />
+                            ) : (
+                                <div className="qr-loading-placeholder">Failed to load QR code</div>
+                            )}
+                            <div className="qr-token-display">Token: <code>{selectedQrTable.qrToken}</code></div>
+                        </div>
+
+                        <div className="qr-modal-actions">
+                            <button
+                                type="button"
+                                className="qr-btn-refresh"
+                                onClick={handleRefreshQrClick}
+                                disabled={isGeneratingQr}
+                                title="Generate a new QR token & replace old QR code"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                    <polyline points="23 4 23 10 17 10" />
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                </svg>
+                                Refresh QR
+                            </button>
+
+                            {qrDataUrl && (
+                                <a
+                                    href={qrDataUrl}
+                                    download={`${selectedQrTable.name.replace(/\s+/g, "_")}_QR.png`}
+                                    className="qr-btn-download"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
+                                    Download QR
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add Table Modal */}
             {showAddModal && (
                 <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>

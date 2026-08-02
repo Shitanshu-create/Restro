@@ -5,5 +5,6 @@ if (import.meta.env.PROD && !apiBaseUrl) {
 }
 
 export const env = {
-  apiBaseUrl: apiBaseUrl || 'http://localhost:3000'
+  apiBaseUrl: apiBaseUrl || 'http://localhost:3000',
+  clientUrl: import.meta.env.VITE_CLIENT_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173')
 };

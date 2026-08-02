@@ -29,6 +29,7 @@ async function createTableController(req, res, next) {
                 qrToken: newTable.qrToken,
                 capacity: newTable.capacity,
                 isOccupied: newTable.isOccupied,
+                occupiedAt: newTable.occupiedAt,
                 qrUrl: `${process.env.CLIENT_URL}/menu?table=${newTable.qrToken}`
             }
         });
@@ -56,12 +57,80 @@ async function getAllTablesController(req, res, next) {
             qrToken: table.qrToken,
             capacity: table.capacity,
             isOccupied: table.isOccupied,
+            occupiedAt: table.occupiedAt,
+            qrImageBase64: table.qrImageBase64 || null,
             qrUrl: `${process.env.CLIENT_URL}/menu?table=${table.qrToken}`
         }));
         res.status(200).json({
             success: true,
             message: "Tables Fetched Successfully",
             tables: tablesWithQrUrl
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+/**
+ * @desc    Save/Refresh QR Image for Table
+ * @route   PATCH /api/admin/refreshQr
+ * @access  Private
+ */
+async function refreshQrController(req, res, next) {
+    try {
+        const { tableNumber, qrImageBase64 } = req.body;
+        if (!tableNumber || !qrImageBase64) {
+            return res.status(400).json({ message: "Table number and QR image are required" });
+        }
+        const table = await TableModel.findOneAndUpdate(
+            { tableNumber },
+            { $set: { qrImageBase64 } },
+            { new: true }
+        );
+        if (!table) {
+            return res.status(404).json({ message: "Table not found" });
+        }
+        res.status(200).json({
+            success: true,
+            message: "QR Image updated successfully",
+            qrImageBase64: table.qrImageBase64
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+
+/**
+ * @desc    Regenerate QR Token for Table
+ * @route   PATCH /api/admin/regenerateQr
+ * @access  Private
+ */
+async function regenerateQrTokenController(req, res, next) {
+    try {
+        const { tableNumber } = req.body;
+        if (!tableNumber) {
+            return res.status(400).json({ message: "Table number is required" });
+        }
+        const newQrToken = generateQrToken();
+        const table = await TableModel.findOneAndUpdate(
+            { tableNumber },
+            { $set: { qrToken: newQrToken, qrImageBase64: null } },
+            { new: true }
+        );
+        if (!table) {
+            return res.status(404).json({ message: "Table not found" });
+        }
+        res.status(200).json({
+            success: true,
+            message: "QR Token regenerated successfully",
+            tableNumber: table.tableNumber,
+            qrToken: table.qrToken
         });
     } catch (error) {
         next(error);
@@ -145,4 +214,4 @@ async function getAllOrdersController(req, res, next) {
 
 
 
-export default { createTableController, getAllTablesController, removeTableController, getAllOrdersController };
+export default { createTableController, getAllTablesController, removeTableController, getAllOrdersController, refreshQrController, regenerateQrTokenController };

@@ -442,10 +442,18 @@ async function resolveTableController(req, res, next) {
             return res.status(404).json({ message: "Invalid or expired QR code" });
         }
 
+        // Mark table as occupied when accessed by customer
+        if (!table.isOccupied) {
+            table.isOccupied = true;
+            table.occupiedAt = new Date();
+            await table.save();
+        }
+
         res.status(200).json({
             success: true,
             tableNumber: table.tableNumber,
-            capacity: table.capacity
+            capacity: table.capacity,
+            qrToken: table.qrToken
         });
     } catch (error) {
         next(error);

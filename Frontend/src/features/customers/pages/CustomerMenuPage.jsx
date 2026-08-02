@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { useMenu, useCustomerOrders, useCustomerAuth } from "../hooks/useCustomer.js";
 import { resolveTable } from "../api/customer.api.js";
 import CartDrawer from "../components/CartDrawer.jsx";
@@ -6,6 +7,7 @@ import OtpModal from "../components/OtpModal.jsx";
 import MyOrdersModal from "../components/MyOrdersModal.jsx";
 import DishDetailModal from "../components/DishDetailModal.jsx";
 import Carousel from "../utils/Carousel.jsx";
+import NotFoundPage from "../../../pages/404NotFound.jsx";
 import indianBanner from "../../../../assets/indian.png";
 import chineseBanner from "../../../../assets/chinese.png";
 import "../styles/CustomerMenuPage.css";
@@ -142,17 +144,29 @@ const CustomerMenuPage = () => {
   const [orderSuccessMsg, setOrderSuccessMsg] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [tableNo, setTableNo] = useState(() => new URLSearchParams(window.location.search).get("table") || "T-01");
+  const { qrToken: urlQrToken } = useParams();
+  const [tableNo, setTableNo] = useState(null);
+  const [tableError, setTableError] = useState(null);
+  const [isResolvingTable, setIsResolvingTable] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token") || params.get("qr");
-    if (!params.get("table") && token) {
+    const token = urlQrToken || params.get("token") || params.get("qr");
+    if (token) {
       resolveTable(token).then((res) => {
-        if (res.success && res.tableNumber) setTableNo(res.tableNumber);
+        if (res.success && res.tableNumber) {
+          setTableNo(res.tableNumber);
+          setTableError(null);
+        } else {
+          setTableError(res.message || "Invalid table QR code");
+        }
+        setIsResolvingTable(false);
       });
+    } else {
+      setTableError("No table QR code provided");
+      setIsResolvingTable(false);
     }
-  }, []);
+  }, [urlQrToken]);
 
   const categoryList = useMemo(() => [
     { id: "all", name: "All Dishes", count: 0, icon: "all" },
@@ -193,6 +207,7 @@ const CustomerMenuPage = () => {
   }, [allItems]);
 
   const handleAddToCart = (item) => {
+    if (!item.isAvailable) return;
     if (item.isCustomized) {
       setCart((prev) => {
         const itemKey = `${item.id}_${item.quantity}_${JSON.stringify(item.selectedAddOns || [])}`;
@@ -357,6 +372,20 @@ const CustomerMenuPage = () => {
     }))
   ];
 
+  if (isResolvingTable) {
+    return (
+      <div className="customer-menu-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="mobile-loading-state" style={{ color: 'var(--color-primary)', fontWeight: '700', fontSize: '18px' }}>
+          Resolving Table...
+        </div>
+      </div>
+    );
+  }
+
+  if (tableError || !tableNo) {
+    return <NotFoundPage />;
+  }
+
   return (
     <div className="customer-menu-page">
       <header className="customer-menu-header">
@@ -384,7 +413,7 @@ const CustomerMenuPage = () => {
           <button type="button" onClick={() => setOrderSuccessMsg(null)} aria-label="Dismiss success message">x</button>
         </div>
       )}
-      {(actionError || menuError) && <div className="mobile-error-toast" role="alert">{actionError || menuError}</div>}
+      {(actionError || menuError || tableError) && <div className="mobile-error-toast" role="alert">{tableError || actionError || menuError}</div>}
 
       <div className="customer-menu-layout">
         <aside className="customer-category-rail shared-sidebar" aria-label="Menu categories">
@@ -429,7 +458,7 @@ const CustomerMenuPage = () => {
                 autoPlay={true}
                 autoPlayInterval={3500}
                 showDots={true}
-                showArrows={true}
+                showArrows={false}
                 itemsPerView={1}
                 className="banner-carousel"
               />
@@ -440,9 +469,6 @@ const CustomerMenuPage = () => {
             <section className="bestseller-section">
               <div className="section-title-row">
                 <h2>BestSeller Items</h2>
-                <button type="button" onClick={() => document.querySelector(".all-dishes-section")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-                  View all <ArrowRightIcon />
-                </button>
               </div>
               {menuLoading ? (
                 <div className="mobile-loading-state">Loading delicious menu...</div>
@@ -451,12 +477,12 @@ const CustomerMenuPage = () => {
                   items={bestSellerItems}
                   autoPlay={false}
                   showDots={true}
-                  showArrows={true}
+                  showArrows={false}
                   itemsPerView={{ mobile: 1.15, tablet: 2.2, desktop: 3.5 }}
                   className="bestseller-carousel"
                   gap={16}
                   renderItem={(dish) => (
-                    <article key={dish.id} className="bestseller-card" onClick={() => setSelectedDishForCustomization(dish)}>
+                    <article key={dish.id} className={`bestseller-card ${!dish.isAvailable ? 'sold-out' : ''}`} onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}>
                       <div className="bestseller-image-wrap">
                         {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
                         <DishTag isVeg={dish.isVeg} />
@@ -503,7 +529,7 @@ const CustomerMenuPage = () => {
             ) : (
               <div className="all-dishes-list">
                 {filteredItems.map((dish) => (
-                  <article key={dish.id} className="swiggy-mobile-dish-card" onClick={() => setSelectedDishForCustomization(dish)}>
+                  <article key={dish.id} className={`swiggy-mobile-dish-card ${!dish.isAvailable ? 'sold-out' : ''}`} onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}>
                     <div className="dish-card-image-col">
                       {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
                       <DishTag isVeg={dish.isVeg} />

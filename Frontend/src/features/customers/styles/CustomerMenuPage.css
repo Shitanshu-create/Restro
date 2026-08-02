@@ -379,18 +379,7 @@
   min-height: 0;
   margin-bottom: 28px;
   overflow: hidden;
-  border: 1px solid rgba(255, 122, 26, 0.14);
   border-radius: 20px;
-  background: #fff5ea;
-  box-shadow: 0 10px 30px rgba(255, 122, 26, 0.08);
-}
-
-.customer-hero-panel img {
-  width: 100%;
-  height: 340px;
-  object-fit: cover;
-  object-position: center;
-  display: block;
 }
 
 .bestseller-carousel .bestseller-card {
@@ -413,18 +402,9 @@
   box-shadow: 0 12px 24px rgba(255, 122, 26, 0.24);
 }
 
-.floating-cart-btn svg,
-.section-title-row button svg {
+.floating-cart-btn svg {
   width: 18px;
   height: 18px;
-}
-
-.customer-hero-panel img {
-  width: 100%;
-  height: 340px;
-  object-fit: cover;
-  object-position: center;
-  display: block;
 }
 
 .section-title-row,
@@ -447,25 +427,9 @@
   letter-spacing: 0;
 }
 
-.section-title-row h2 svg {
-  width: 24px;
-  height: 24px;
-  color: var(--color-primary);
-}
-
-.section-title-row button {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-primary);
-  font-size: 14px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
 .bestseller-section {
-  margin-bottom: 22px;
+  margin-bottom: 28px;
+  width: 100%;
 }
 
 .bestseller-grid {
@@ -1174,3 +1138,24 @@
 [data-theme="dark"] .rail-promo-card p {
   color: var(--color-text-secondary);
 }
+
+.sold-out {
+  opacity: 0.6;
+  filter: grayscale(80%);
+  cursor: not-allowed !important;
+}
+
+.sold-out-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background-color: var(--color-error-bg, #fee2e2);
+  color: var(--color-error, #ef4444);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-button, 8px);
+  border: 1px solid var(--color-error);
+  user-select: none;
+}
+

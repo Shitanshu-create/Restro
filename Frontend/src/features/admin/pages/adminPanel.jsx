@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth.js";
 import Sidepanel from "../../../components/Sidepanel.jsx";
 import DashboardHeader from "../components/DashboardHeader.jsx";
@@ -16,56 +16,53 @@ import "../styles/adminPanel.css";
 
 
 const AdminPanel = () => {
-  const [activePage, setActivePage] = useState("dashboard");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { handleLogout, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract page identifier from sub-path, e.g. /admin/tables -> "tables"
+  const subPath = location.pathname.replace(/^\/admin\/?/, "").split("/")[0];
+  const activePage = subPath || "dashboard";
+
   const pages = {
     dashboard: {
       title: "Dashboard",
       subtitle: `Hello ${user?.name || "Admin"}, welcome back!`,
-      component: DashboardPage,
     },
     orders: {
       title: "Orders",
       subtitle: "Overview and management for orders",
-      component: OrdersPage,
     },
     analytics: {
       title: "Analytics",
       subtitle: "Overview and management for analytics",
-      component: AnalyticsPage,
     },
     tables: {
       title: "Tables",
       subtitle: "Overview and management for tables",
-      component: TablesPage,
     },
     payments: {
       title: "Payments",
       subtitle: "Overview and management for payments",
-      component: PaymentsPage,
     },
     menu: {
       title: "Menu",
       subtitle: "Catalog tools and category assignment",
-      component: MenuPage,
     },
     staffs: {
       title: "Staffs",
       subtitle: "Approve or reject staff access requests",
-      component: StaffsPage,
     },
   };
+
   const currentPage = pages[activePage] || pages.dashboard;
-  const ActivePageComponent = currentPage.component;
+
   const handlePageChange = (pageId) => {
-    setActivePage(pageId);
+    navigate(pageId === "dashboard" ? "/admin" : `/admin/${pageId}`);
     setMobileSidebarOpen(false);
   };
 
-
-  
   return (
     <div className="admin-shell">
       <Sidepanel
@@ -81,7 +78,16 @@ const AdminPanel = () => {
           onToggleMobileMenu={() => setMobileSidebarOpen((prev) => !prev)}
         />
         <main className="admin-main-scroll">
-          <ActivePageComponent />
+          <Routes>
+            <Route index element={<DashboardPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="tables" element={<TablesPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
+            <Route path="menu" element={<MenuPage />} />
+            <Route path="staffs" element={<StaffsPage />} />
+            <Route path="*" element={<DashboardPage />} />
+          </Routes>
         </main>
       </div>
     </div>

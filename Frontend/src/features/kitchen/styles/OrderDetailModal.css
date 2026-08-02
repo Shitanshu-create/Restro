@@ -224,6 +224,7 @@
 }
 
 .saas-order-modal {
+  padding: 1rem;
   background: #ffffff;
   border-radius: 20px;
   width: min(100%, 520px);
@@ -332,11 +333,13 @@
 
 /* Status Grid */
 .saas-status-grid {
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   padding: 16px 22px;
   background: #f8f6f3;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 

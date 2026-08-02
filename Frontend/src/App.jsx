@@ -36,6 +36,7 @@ function App() {
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path='/' element={<LandingPage isLoggedIn={isLoggedIn} user={user} />} />
+          <Route path='/customer/menu/:qrToken' element={<CustomerMenuPage />} />
           <Route path='/customer/menu' element={<CustomerMenuPage />} />
           <Route path='/register'
             element={isLoggedIn ? <Navigate to={getRedirectPath(user)} /> :
@@ -51,7 +52,7 @@ function App() {
                 onOpenRegister={() => navigate('/register')}
                 onLoginSuccess={(u) => navigate(getRedirectPath(u))} />)}
           />
-          <Route path='/admin' element={
+          <Route path='/admin/*' element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminPanel />
             </ProtectedRoute>

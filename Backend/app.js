@@ -38,11 +38,14 @@ app.use(helmet({
         }
     }
 }));
+
 const allowedOrigins = new Set([
     env.corsOrigin,
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
 ]);
+
+
 app.use(cors({
     origin(origin, callback) {
         if (!origin || allowedOrigins.has(origin)) {
@@ -79,4 +82,5 @@ app.use("/api/kitchen", kitchenRouter);
 app.use("/api/payment", paymentRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 export default app;

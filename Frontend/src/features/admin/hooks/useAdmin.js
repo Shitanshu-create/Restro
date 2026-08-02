@@ -28,7 +28,25 @@ export function useTables() {
         if (res.success) await loadTables();
         return res;
     };
-    return { tables, loading, error, handleCreateTable, handleRemoveTable, reload: loadTables };
+    const handleSaveQr = async (tableNumber, qrImageBase64) => {
+        const res = await adminApi.refreshTableQr(tableNumber, qrImageBase64);
+        if (res.success) {
+            setTables((prev) =>
+                prev.map((t) => (t.tableNumber === tableNumber ? { ...t, qrImageBase64: res.qrImageBase64 } : t))
+            );
+        }
+        return res;
+    };
+    const handleRegenerateQr = async (tableNumber) => {
+        const res = await adminApi.regenerateTableQrToken(tableNumber);
+        if (res.success) {
+            setTables((prev) =>
+                prev.map((t) => (t.tableNumber === tableNumber ? { ...t, qrToken: res.qrToken, qrImageBase64: null } : t))
+            );
+        }
+        return res;
+    };
+    return { tables, loading, error, handleCreateTable, handleRemoveTable, handleSaveQr, handleRegenerateQr, reload: loadTables };
 }
 export function useMenu() {
     const [categories, setCategories] = useState([]);

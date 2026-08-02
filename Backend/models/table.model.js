@@ -6,6 +6,11 @@ const tableSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    qrToken: {
+        type: String,
+        required: true,
+        unique: true
+    },
     capacity: {
         type: Number,
         required: true,
@@ -15,8 +20,16 @@ const tableSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    occupiedAt: {
+        type: Date,
+        default: null
+    },
     currentOrderId: {
         type: Number,
+        default: null
+    },
+    qrImageBase64: {
+        type: String,
         default: null
     }
 }, { timestamps: true });
