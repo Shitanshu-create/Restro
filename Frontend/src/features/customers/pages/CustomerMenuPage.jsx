@@ -8,6 +8,7 @@ import MyOrdersModal from "../components/MyOrdersModal.jsx";
 import DishDetailModal from "../components/DishDetailModal.jsx";
 import Carousel from "../utils/Carousel.jsx";
 import NotFoundPage from "../../../pages/404NotFound.jsx";
+import ReviewModal from "../components/ReviewModal.jsx";
 import indianBanner from "../../../../assets/indian.png";
 import chineseBanner from "../../../../assets/chinese.png";
 import "../styles/CustomerMenuPage.css";
@@ -144,6 +145,7 @@ const CustomerMenuPage = () => {
   const [orderSuccessMsg, setOrderSuccessMsg] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const { qrToken: urlQrToken } = useParams();
   const [tableNo, setTableNo] = useState(null);
   const [tableError, setTableError] = useState(null);
@@ -397,6 +399,9 @@ const CustomerMenuPage = () => {
           </div>
         </div>
         <div className="mobile-header-actions">
+          <button type="button" className="btn-review-pill" onClick={() => setShowReviewModal(true)}>
+            ★ Review
+          </button>
           <button type="button" className="btn-orders-pill" onClick={() => { reloadOrders(); setShowOrdersModal(true); }}>
             My Orders {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
           </button>
@@ -568,6 +573,7 @@ const CustomerMenuPage = () => {
       {showOtpModal && <OtpModal onSuccess={onOtpVerified} onClose={() => setShowOtpModal(false)} />}
       <MyOrdersModal isOpen={showOrdersModal} onClose={() => setShowOrdersModal(false)} orders={orders} loading={orderLoading} onRefresh={reloadOrders} />
       <DishDetailModal isOpen={!!selectedDishForCustomization} onClose={() => setSelectedDishForCustomization(null)} dish={selectedDishForCustomization} onAddToCart={handleAddToCart} />
+      <ReviewModal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} tableNo={tableNo} customerName={customer?.name} />
     </div>
   );
 };

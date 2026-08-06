@@ -100,3 +100,18 @@
   margin-top: 14px;
   cursor: pointer;
 }
+.otp-dev-hint {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: rgba(255, 122, 26, 0.08);
+  border: 1px dashed var(--color-primary, #ff7a1a);
+  color: var(--color-primary, #ff7a1a);
+  border-radius: 8px;
+  font-size: var(--font-size-sm, 0.875rem);
+  text-align: center;
+}
+.otp-dev-hint strong {
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+

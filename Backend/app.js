@@ -12,6 +12,7 @@ import customerRouter from "./routes/customer.route.js";
 import tableRouter from "./routes/table.route.js";
 import kitchenRouter from "./routes/kitchen.route.js";
 import paymentRouter from "./routes/payment.route.js";
+import reviewRouter from "./routes/review.route.js";
 const app = express();
 const csrfProtection = (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
@@ -44,6 +45,13 @@ const allowedOrigins = new Set([
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]);
+if (env.netlifyUrlCors) {
+    allowedOrigins.add(env.netlifyUrlCors);
+    if (!env.netlifyUrlCors.startsWith("http://") && !env.netlifyUrlCors.startsWith("https://")) {
+        allowedOrigins.add(`https://${env.netlifyUrlCors}`);
+        allowedOrigins.add(`http://${env.netlifyUrlCors}`);
+    }
+}
 
 
 app.use(cors({
@@ -73,6 +81,9 @@ app.use(express.json({ limit: env.jsonLimit }));
 
 
 
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "OK", timestamp: new Date() });
+});
 app.use("/api/auth", authRouter);
 app.use("/api/menu", menuRouter);
 app.use("/api/admin", menuRouter);
@@ -80,6 +91,7 @@ app.use("/api/customer", customerRouter);
 app.use("/api/admin", tableRouter);
 app.use("/api/kitchen", kitchenRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/reviews", reviewRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

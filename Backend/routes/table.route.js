@@ -42,7 +42,8 @@ tableRouter.delete("/removeTable", authMiddleware.verifyAdmin, tableController.r
  * @access Private (Admin)
  */
 tableRouter.get("/getAllOrders", authMiddleware.verifyAdmin, tableController.getAllOrdersController);
-tableRouter.patch("/refreshQr", authMiddleware.verifyAdmin, tableController.refreshQrController);
-tableRouter.patch("/regenerateQr", authMiddleware.verifyAdmin, tableController.regenerateQrTokenController);
+// tableRouter.patch("/refreshQr", authMiddleware.verifyAdmin, tableController.refreshQrController);
+// tableRouter.patch("/regenerateQr", authMiddleware.verifyAdmin, tableController.regenerateQrTokenController);
+tableRouter.patch("/toggleTableAvailability", authMiddleware.verifyAdmin, tableController.toggleTableAvailabilityController);
 
 export default tableRouter;

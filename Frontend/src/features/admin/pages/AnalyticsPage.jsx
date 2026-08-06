@@ -21,7 +21,7 @@ const buildFill = (pts, height) => {
   return buildCurvedPath(pts) + ` L ${pts[pts.length - 1][0]},${height} L ${pts[0][0]},${height} Z`;
 };
 
-const XLABELS = ["9am", "11am", "1pm", "3pm", "5pm", "7pm", "9pm"];
+const XLABELS = ["12am", "4am", "8am", "12pm", "4pm", "8pm", "12am"];
 const W = 560; const H = 160;
 
 const SparklineChart = ({ points, color, fillId, gradientStart }) => {
@@ -73,22 +73,32 @@ const AnalyticsPage = () => {
   const totalOrdersCount = filteredOrders.length;
 
   const revPts = useMemo(() => {
-    const hours = [9, 11, 13, 15, 17, 19, 21];
-    const hourRevs = hours.map((h) =>
-      paidOrders
-        .filter((o) => o.createdAt && new Date(o.createdAt).getHours() >= h - 1 && new Date(o.createdAt).getHours() <= h + 1)
-        .reduce((sum, o) => sum + Number(o.amount || 0), 0)
-    );
+    const hours = [0, 4, 8, 12, 16, 20, 24];
+    const hourRevs = hours.map((h) => {
+      if (h === 24) return 0;
+      return paidOrders
+        .filter((o) => {
+          if (!o.createdAt) return false;
+          const hr = new Date(o.createdAt).getHours();
+          return hr >= h && hr < h + 4;
+        })
+        .reduce((sum, o) => sum + Number(o.amount || 0), 0);
+    });
     const maxVal = Math.max(...hourRevs, 100);
     const stepX = W / (hours.length - 1);
     return hours.map((_, idx) => [idx * stepX, H - (hourRevs[idx] / maxVal) * (H - 40) - 20]);
   }, [paidOrders]);
 
   const ordPts = useMemo(() => {
-    const hours = [9, 11, 13, 15, 17, 19, 21];
-    const hourCounts = hours.map((h) =>
-      filteredOrders.filter((o) => o.createdAt && new Date(o.createdAt).getHours() >= h - 1 && new Date(o.createdAt).getHours() <= h + 1).length
-    );
+    const hours = [0, 4, 8, 12, 16, 20, 24];
+    const hourCounts = hours.map((h) => {
+      if (h === 24) return 0;
+      return filteredOrders.filter((o) => {
+        if (!o.createdAt) return false;
+        const hr = new Date(o.createdAt).getHours();
+        return hr >= h && hr < h + 4;
+      }).length;
+    });
     const maxVal = Math.max(...hourCounts, 10);
     const stepX = W / (hours.length - 1);
     return hours.map((_, idx) => [idx * stepX, H - (hourCounts[idx] / maxVal) * (H - 40) - 20]);

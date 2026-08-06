@@ -10,6 +10,7 @@ import TablesPage from "./TablesPage.jsx";
 import PaymentsPage from "./PaymentsPage.jsx";
 import MenuPage from "./MenuPage.jsx";
 import StaffsPage from "./StaffsPage.jsx";
+import ReviewsPage from "./ReviewsPage.jsx";
 import "../styles/adminPanel.css";
 
 
@@ -54,6 +55,10 @@ const AdminPanel = () => {
       title: "Staffs",
       subtitle: "Approve or reject staff access requests",
     },
+    reviews: {
+      title: "Reviews",
+      subtitle: "Browse customer ratings and feedback comments",
+    },
   };
 
   const currentPage = pages[activePage] || pages.dashboard;
@@ -86,6 +91,7 @@ const AdminPanel = () => {
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="menu" element={<MenuPage />} />
             <Route path="staffs" element={<StaffsPage />} />
+            <Route path="reviews" element={<ReviewsPage />} />
             <Route path="*" element={<DashboardPage />} />
           </Routes>
         </main>

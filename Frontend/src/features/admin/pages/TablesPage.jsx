@@ -10,7 +10,7 @@ import "../styles/TablesPage.css";
 const FILTER_TABS = ["All", "Occupied", "Available"];
 
 const TablesPage = () => {
-    const { tables, loading, error, handleCreateTable, handleRemoveTable, handleSaveQr, handleRegenerateQr } = useTables();
+    const { tables, loading, error, handleCreateTable, handleRemoveTable, handleToggleTableAvailability } = useTables();
     const [activeTab, setActiveTab] = useState("All");
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedQrTable, setSelectedQrTable] = useState(null);
@@ -54,8 +54,8 @@ const TablesPage = () => {
                     const fullQrUrl = `${clientUrl}/customer/menu/${selectedQrTable.qrToken}`;
                     const url = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
                     setQrDataUrl(url);
-                    // Persist to DB asynchronously
-                    handleSaveQr(selectedQrTable.tableNumber, url);
+                    // Persist to DB asynchronously - disabled
+                    // handleSaveQr(selectedQrTable.tableNumber, url);
                 }
             } catch (err) {
                 console.error("QR Generation Failed:", err);
@@ -67,29 +67,7 @@ const TablesPage = () => {
         buildAndSaveQr();
     }, [selectedQrTable]);
 
-    const handleRefreshQrClick = async () => {
-        if (!selectedQrTable) return;
-        setIsGeneratingQr(true);
-        try {
-            const res = await handleRegenerateQr(selectedQrTable.tableNumber);
-            if (res.success && res.qrToken) {
-                const clientUrl = env.clientUrl;
-                const fullQrUrl = `${clientUrl}/customer/menu/${res.qrToken}`;
-                const newUrl = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
-                setQrDataUrl(newUrl);
-                await handleSaveQr(selectedQrTable.tableNumber, newUrl);
-                setSelectedQrTable((prev) => ({
-                    ...prev,
-                    qrToken: res.qrToken,
-                    qrImageBase64: newUrl
-                }));
-            }
-        } catch (err) {
-            console.error("QR Refresh Failed:", err);
-        } finally {
-            setIsGeneratingQr(false);
-        }
-    };
+    // const handleRefreshQrClick = async () => { ... } // Disabled
 
     const handleAddTableSubmit = async (e) => {
         e.preventDefault();
@@ -180,10 +158,23 @@ const TablesPage = () => {
                                     <span className="table-card-name">{t.name}</span>
                                     <span className="table-card-token-sub">({t.qrToken})</span>
                                 </div>
-                                <span className={`table-status-pill pill-${t.status.toLowerCase()}`}>
-                                    <span className="pill-dot" />
-                                    {t.status}
-                                </span>
+                                 <span
+                                     className={`table-status-pill pill-${t.status.toLowerCase()}`}
+                                     style={{ cursor: "pointer" }}
+                                     title="Click to toggle availability"
+                                     onClick={(e) => {
+                                         e.stopPropagation();
+                                         if (t.status === "Occupied") {
+                                             if (!window.confirm(`Warning: Table ${t.tableNumber.replace("T-", "")} is currently occupied with active orders. Are you sure you want to override and mark it as Available?`)) {
+                                                 return;
+                                             }
+                                         }
+                                         handleToggleTableAvailability(t.tableNumber);
+                                     }}
+                                 >
+                                     <span className="pill-dot" />
+                                     {t.status}
+                                 </span>
                             </div>
                             <div className="table-card-bottom-row" style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span className="table-card-time">Capacity: {t.capacity} Guests</span>
@@ -228,19 +219,7 @@ const TablesPage = () => {
                         </div>
 
                         <div className="qr-modal-actions">
-                            <button
-                                type="button"
-                                className="qr-btn-refresh"
-                                onClick={handleRefreshQrClick}
-                                disabled={isGeneratingQr}
-                                title="Generate a new QR token & replace old QR code"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                    <polyline points="23 4 23 10 17 10" />
-                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                                </svg>
-                                Refresh QR
-                            </button>
+                            {/* Refresh QR Button Removed */}
 
                             {qrDataUrl && (
                                 <a

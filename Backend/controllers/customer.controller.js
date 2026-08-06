@@ -336,7 +336,8 @@ async function sendOtpController(req, res, next) {
 
         res.status(200).json({
             success: true,
-            message: "OTP sent successfully to WhatsApp"
+            message: "OTP sent successfully to WhatsApp",
+            ...(process.env.NODE_ENV !== "production" && { devOtp: otp })
         });
     } catch (error) {
         next(error);

@@ -12,12 +12,19 @@ const RestaurantFloor = () => {
         const tableNum = String(t.tableNumber || t.id || "").replace("T-", "").padStart(2, "0");
         const rawNum = String(t.tableNumber || t.id || "");
         
-        // Find active orders for this table
-        const tableOrders = orders.filter((o) => String(o.tableNo) === rawNum || String(o.tableNo) === `T-${tableNum}`);
-        const activeOrder = tableOrders.find((o) => o.orderStatus !== "Delivered" && o.orderStatus !== "Completed");
+        // Find active orders for this table by normalizing table numbers
+        const tableOrders = orders.filter((o) => {
+            const oNum = String(o.tableNo || "").replace(/[^0-9]/g, "").replace(/^0+/, "");
+            const tNum = String(t.tableNumber || "").replace(/[^0-9]/g, "").replace(/^0+/, "");
+            return oNum && tNum && oNum === tNum;
+        });
+        const activeOrder = tableOrders.find((o) => {
+            const isRecent = o.createdAt ? (new Date(o.createdAt) > Date.now() - 8 * 60 * 60 * 1000) : true;
+            return o.orderStatus !== "Delivered" && o.orderStatus !== "Completed" && isRecent;
+        });
         
         let status = t.isOccupied ? "occupied" : "available";
-        if (activeOrder) {
+        if (t.isOccupied && activeOrder) {
             if (activeOrder.paymentStatus === "Pending" && activeOrder.orderStatus === "Ready") {
                 status = "waiting";
             } else {

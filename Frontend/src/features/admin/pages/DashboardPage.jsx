@@ -2,7 +2,6 @@ import React from "react";
 import StatCard from "../components/StatCard.jsx";
 import LiveOrdersList from "../components/LiveOrdersList.jsx";
 import RestaurantFloor from "../components/RestaurantFloor.jsx";
-import NotificationsPanel from "../components/NotificationsPanel.jsx";
 import RevenueTrendChart from "../components/RevenueTrendChart.jsx";
 import TopSellingItems from "../components/TopSellingItems.jsx";
 import { useTables, useOrders } from "../hooks/useAdmin.js";
@@ -19,8 +18,23 @@ const DashboardPage = () => {
     })
     .reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0);
 
-  const displayRevenue = todayRevenue > 0 ? `$${todayRevenue.toFixed(2)}` : "$14,850.00";
-  const displayOrdersCount = orders.length > 0 ? orders.length : 342;
+  const displayRevenue = todayRevenue > 0 ? `$${todayRevenue.toFixed(2)}` : "$0.00";
+  const displayOrdersCount = orders.length;
+
+  const paidOrders = orders.filter((o) => o.paymentStatus === "Paid");
+  const displayAvgValue = paidOrders.length > 0
+    ? `$${(paidOrders.reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0) / paidOrders.length).toFixed(2)}`
+    : "$0.00";
+
+  // Upsell proxy: orders containing customized items, variant prices, or add-ons
+  const upsellOrders = orders.filter(
+    (o) => o.items && o.items.some((item) => (item.selectedAddOns && item.selectedAddOns.length > 0) || item.variantPrice > 0)
+  ).length;
+  const displayUpsell = orders.length > 0 ? `${((upsellOrders / orders.length) * 100).toFixed(1)}%` : "0.0%";
+
+  // QR scan proxy: orders with a tableNo set
+  const qrOrders = orders.filter((o) => o.tableNo).length;
+  const displayQr = orders.length > 0 ? `${((qrOrders / orders.length) * 100).toFixed(1)}%` : "100.0%";
 
   return (
     <div className="dashboard-page">
@@ -53,9 +67,9 @@ const DashboardPage = () => {
         />
         <StatCard
           title="avg order value"
-          value="$43.40"
-          subtext="~^ +$4.20 vs avg"
-          subtextColor="green"
+          value={displayAvgValue}
+          subtext="Based on paid orders"
+          subtextColor="muted"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -65,8 +79,8 @@ const DashboardPage = () => {
         />
         <StatCard
           title="upsell performance"
-          value="24.8%"
-          subtext="~^ +5.2% Conversion"
+          value={displayUpsell}
+          subtext="Add-ons & variants"
           subtextColor="green"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -76,8 +90,8 @@ const DashboardPage = () => {
         />
         <StatCard
           title="qr orders %"
-          value="91.5%"
-          subtext="~^ +4.8% Scan ratio"
+          value={displayQr}
+          subtext="Dine-in scan ratio"
           subtextColor="green"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -94,40 +108,6 @@ const DashboardPage = () => {
       <div className="dashboard-mid-row">
         <LiveOrdersList />
         <RestaurantFloor />
-      </div>
-
-      {/* Row 3: Notification + Recent Customer Review */}
-      <div className="dashboard-mid-row">
-        <NotificationsPanel />
-        <div className="recent-review-card">
-          <div className="review-header-row">
-            <h2 className="review-title">recent customer review</h2>
-            <span className="review-rating-badge">★ 4.9 Rating</span>
-          </div>
-          <div className="review-body">
-            <div className="reviewer-info">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80"
-                alt="Sarah Jenkins"
-                className="reviewer-avatar"
-              />
-              <div>
-                <span className="reviewer-name">Sarah Jenkins</span>
-                <span className="reviewer-table">• Table 08</span>
-                <div className="review-meta-time">QR Scan Order #408 • 12 mins ago</div>
-              </div>
-              <span className="review-stars">★★★★★</span>
-            </div>
-            <p className="review-comment">
-              "The QR menu was super crisp with clear photos! Our Truffle Wagyu burger arrived in under 10 minutes and was cooked to perfection. Amazing digital ordering experience!"
-            </p>
-            <div className="review-tags-row">
-              <span className="review-tag">Fast Service</span>
-              <span className="review-tag">Great Ambiance</span>
-              <button type="button" className="quick-reply-btn">Quick Reply</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Row 4: Revenue Trend Chart + Top Selling Items */}

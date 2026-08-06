@@ -134,3 +134,12 @@ export const verifyPayment = async (paymentData) => {
         return { success: false, message: getErrorMessage(err, "Payment verification failed") };
     }
 };
+
+export const submitReview = async (reviewData) => {
+    try {
+        const res = await api.post("/api/reviews/submitReview", reviewData);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to submit review") };
+    }
+};

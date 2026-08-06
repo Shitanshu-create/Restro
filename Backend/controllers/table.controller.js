@@ -53,6 +53,7 @@ async function getAllTablesController(req, res, next) {
             return res.status(404).json({ message: "No Tables Found" });
         }
         const tablesWithQrUrl = tables.map((table) => ({
+            _id: table._id.toString(),
             tableNumber: table.tableNumber,
             qrToken: table.qrToken,
             capacity: table.capacity,
@@ -74,11 +75,7 @@ async function getAllTablesController(req, res, next) {
 
 
 
-/**
- * @desc    Save/Refresh QR Image for Table
- * @route   PATCH /api/admin/refreshQr
- * @access  Private
- */
+/*
 async function refreshQrController(req, res, next) {
     try {
         const { tableNumber, qrImageBase64 } = req.body;
@@ -102,15 +99,9 @@ async function refreshQrController(req, res, next) {
         next(error);
     }
 }
+*/
 
-
-
-
-/**
- * @desc    Regenerate QR Token for Table
- * @route   PATCH /api/admin/regenerateQr
- * @access  Private
- */
+/*
 async function regenerateQrTokenController(req, res, next) {
     try {
         const { tableNumber } = req.body;
@@ -136,10 +127,48 @@ async function regenerateQrTokenController(req, res, next) {
         next(error);
     }
 }
+*/
 
-
-
-
+/**
+ * @desc    Toggle Table Availability (isOccupied)
+ * @route   PATCH /api/admin/toggleTableAvailability
+ * @access  Private (Admin)
+ */
+async function toggleTableAvailabilityController(req, res, next) {
+    try {
+        const { tableNumber } = req.body;
+        if (!tableNumber) {
+            return res.status(400).json({ message: "Table number is required" });
+        }
+        const table = await TableModel.findOne({ tableNumber });
+        if (!table) {
+            return res.status(404).json({ message: "Table not found" });
+        }
+        table.isOccupied = !table.isOccupied;
+        if (!table.isOccupied) {
+            table.occupiedAt = null;
+            table.currentOrderId = null;
+        } else {
+            table.occupiedAt = new Date();
+        }
+        await table.save();
+        res.status(200).json({
+            success: true,
+            message: `Table status updated to ${table.isOccupied ? "Occupied" : "Available"}`,
+            table: {
+                tableNumber: table.tableNumber,
+                qrToken: table.qrToken,
+                capacity: table.capacity,
+                isOccupied: table.isOccupied,
+                occupiedAt: table.occupiedAt,
+                qrImageBase64: table.qrImageBase64,
+                qrUrl: `${process.env.CLIENT_URL}/menu?table=${table.qrToken}`
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 /**
  * @desc    Remove a Table
@@ -214,4 +243,4 @@ async function getAllOrdersController(req, res, next) {
 
 
 
-export default { createTableController, getAllTablesController, removeTableController, getAllOrdersController, refreshQrController, regenerateQrTokenController };
+export default { createTableController, getAllTablesController, removeTableController, getAllOrdersController, toggleTableAvailabilityController };

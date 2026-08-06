@@ -17,6 +17,8 @@ export function useTables() {
     }, []);
     useEffect(() => {
         loadTables();
+        const interval = setInterval(loadTables, 10000);
+        return () => clearInterval(interval);
     }, [loadTables]);
     const handleCreateTable = async (capacity) => {
         const res = await adminApi.createTable(capacity);
@@ -28,6 +30,7 @@ export function useTables() {
         if (res.success) await loadTables();
         return res;
     };
+    /*
     const handleSaveQr = async (tableNumber, qrImageBase64) => {
         const res = await adminApi.refreshTableQr(tableNumber, qrImageBase64);
         if (res.success) {
@@ -46,7 +49,17 @@ export function useTables() {
         }
         return res;
     };
-    return { tables, loading, error, handleCreateTable, handleRemoveTable, handleSaveQr, handleRegenerateQr, reload: loadTables };
+    */
+    const handleToggleTableAvailability = async (tableNumber) => {
+        // Optimistic update
+        setTables((prev) =>
+            prev.map((t) => (t.tableNumber === tableNumber ? { ...t, isOccupied: !t.isOccupied } : t))
+        );
+        const res = await adminApi.toggleTableAvailability(tableNumber);
+        await loadTables();
+        return res;
+    };
+    return { tables, loading, error, handleCreateTable, handleRemoveTable, handleToggleTableAvailability, reload: loadTables };
 }
 export function useMenu() {
     const [categories, setCategories] = useState([]);
@@ -174,7 +187,7 @@ export function useOrders() {
     
     useEffect(() => {
         loadOrders();
-        const interval = setInterval(loadOrders, 180000);
+        const interval = setInterval(loadOrders, 10000);
         return () => clearInterval(interval);
     }, [loadOrders]);
     const handleMarkCashPaid = async (orderId) => {
@@ -210,4 +223,28 @@ export function useOrders() {
 
 
     return { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload: loadOrders };
+}
+
+export function useReviews() {
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const loadReviews = useCallback(async (params = {}) => {
+        setLoading(true);
+        setError(null);
+        const res = await adminApi.getAllReviews(params);
+        if (res.success) {
+            setReviews(res.reviews || []);
+        } else {
+            setError(res.message);
+        }
+        setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        loadReviews();
+    }, [loadReviews]);
+
+    return { reviews, loading, error, reload: loadReviews };
 }

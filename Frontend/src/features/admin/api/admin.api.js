@@ -50,6 +50,7 @@ export const removeTable = async (tableNumber) => {
 };
 
 
+/*
 export const refreshTableQr = async (tableNumber, qrImageBase64) => {
     try {
         const res = await api.patch("/api/admin/refreshQr", { tableNumber, qrImageBase64 });
@@ -59,13 +60,22 @@ export const refreshTableQr = async (tableNumber, qrImageBase64) => {
     }
 };
 
-
 export const regenerateTableQrToken = async (tableNumber) => {
     try {
         const res = await api.patch("/api/admin/regenerateQr", { tableNumber });
         return res.data;
     } catch (err) {
         return { success: false, message: getErrorMessage(err, "Failed to regenerate QR token") };
+    }
+};
+*/
+
+export const toggleTableAvailability = async (tableNumber) => {
+    try {
+        const res = await api.patch("/api/admin/toggleTableAvailability", { tableNumber });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to toggle table availability") };
     }
 };
 
@@ -276,6 +286,15 @@ export const removeStaff = async (staffId) => {
         return res.data;
     } catch (err) {
         return { success: false, message: getErrorMessage(err, "Failed to remove staff") };
+    }
+};
+
+export const getAllReviews = async (params = {}) => {
+    try {
+        const res = await api.get("/api/reviews/getAllReviews", { params });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch reviews") };
     }
 };
 

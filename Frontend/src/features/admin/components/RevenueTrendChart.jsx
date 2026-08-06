@@ -26,17 +26,18 @@ function buildFill(pts, height) {
   return `${line} L ${last[0]},${height} L ${first[0]},${height} Z`;
 }
 
-const xLabels = ["9 AM", "11 AM", "1 PM", "3 PM", "5 PM", "7 PM", "9 PM"];
+const xLabels = ["12 AM", "4 AM", "8 AM", "12 PM", "4 PM", "8 PM", "12 AM"];
 
 const RevenueTrendChart = ({ orders = [] }) => {
   const chartPoints = useMemo(() => {
-    const hours = [9, 11, 13, 15, 17, 19, 21];
+    const hours = [0, 4, 8, 12, 16, 20, 24];
     const revenueByHour = hours.map((h) => {
+      if (h === 24) return 0; // midnight end-of-day anchor
       return orders
         .filter((o) => {
           if (!o.createdAt || o.paymentStatus !== "Paid") return false;
-          const orderDate = new Date(o.createdAt);
-          return orderDate.getHours() >= h - 1 && orderDate.getHours() <= h + 1;
+          const hr = new Date(o.createdAt).getHours();
+          return hr >= h && hr < h + 4;
         })
         .reduce((sum, o) => sum + Number(o.amount || 0), 0);
     });

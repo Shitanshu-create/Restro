@@ -8,6 +8,7 @@ const OtpModal = ({ onSuccess, onClose }) => {
     const [name, setName] = useState("");
     const [otp, setOtp] = useState("");
     const [error, setError] = useState(null);
+    const [devOtp, setDevOtp] = useState(null);
     const handleSendOtpSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -15,6 +16,11 @@ const OtpModal = ({ onSuccess, onClose }) => {
         if (!phone.trim()) return setError("Please enter your phone number");
         const res = await handleSendOtp(phone);
         if (res.success) {
+            if (res.devOtp) {
+                setDevOtp(res.devOtp);
+            } else {
+                setDevOtp(null);
+            }
             setStep("otp");
         } else {
             setError(res.message || "Failed to send OTP");
@@ -96,6 +102,11 @@ const OtpModal = ({ onSuccess, onClose }) => {
                         >
                             ← Change Phone Number
                         </button>
+                        {devOtp && (
+                            <div className="otp-dev-hint">
+                                Your OTP is: <strong>{devOtp}</strong>
+                            </div>
+                        )}
                     </form>
                 )}
             </div>

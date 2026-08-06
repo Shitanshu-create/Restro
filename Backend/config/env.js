@@ -33,6 +33,7 @@ const env = {
     mongoUri: typeof requiredEnv.MONGODB_URI === "string" ? requiredEnv.MONGODB_URI.trim() : requiredEnv.MONGODB_URI,
     jwtSecret: typeof requiredEnv.JWT_SECRET === "string" ? requiredEnv.JWT_SECRET.trim() : requiredEnv.JWT_SECRET,
     corsOrigin: typeof process.env.CORS_ORIGIN === "string" ? process.env.CORS_ORIGIN.trim() : (process.env.CORS_ORIGIN || "http://localhost:5173"),
+    netlifyUrlCors: typeof process.env.NETLIFY_URL_CORS === "string" ? process.env.NETLIFY_URL_CORS.trim() : (process.env.NETLIFY_URL_CORS || "http://localhost:5173"),
     jsonLimit: typeof process.env.JSON_LIMIT === "string" ? process.env.JSON_LIMIT.trim() : (process.env.JSON_LIMIT || "10mb"),
     rateLimit: {
         windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
