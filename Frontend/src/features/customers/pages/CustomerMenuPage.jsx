@@ -124,6 +124,20 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
+const StarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+);
+
+const OrdersIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+    <rect x="9" y="3" width="6" height="4" rx="1" />
+    <path d="M9 12h6M9 16h4" />
+  </svg>
+);
+
 const DishTag = ({ isVeg }) => (
   <span className={`dish-type-tag ${isVeg ? "veg" : "nonveg"}`}>{isVeg ? "Veg" : "Non-Veg"}</span>
 );
@@ -399,11 +413,14 @@ const CustomerMenuPage = () => {
           </div>
         </div>
         <div className="mobile-header-actions">
-          <button type="button" className="btn-review-pill" onClick={() => setShowReviewModal(true)}>
-            ★ Review
+          <button type="button" className="btn-review-pill" onClick={() => setShowReviewModal(true)} aria-label="Leave a review">
+            <StarIcon />
+            <span className="btn-label-text">Review</span>
           </button>
-          <button type="button" className="btn-orders-pill" onClick={() => { reloadOrders(); setShowOrdersModal(true); }}>
-            My Orders {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
+          <button type="button" className="btn-orders-pill" onClick={() => { reloadOrders(); setShowOrdersModal(true); }} aria-label="My Orders">
+            <OrdersIcon />
+            <span className="btn-label-text">My Orders</span>
+            {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
           </button>
           <button type="button" className="btn-cart-pill" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
             <BagIcon />

@@ -50,7 +50,7 @@ const TablesPage = () => {
                 if (selectedQrTable.qrImageBase64) {
                     setQrDataUrl(selectedQrTable.qrImageBase64);
                 } else {
-                    const clientUrl = env.clientUrl;
+                    const clientUrl = (env.clientUrl || window.location.origin).replace(/\/+$/, "");
                     const fullQrUrl = `${clientUrl}/customer/menu/${selectedQrTable.qrToken}`;
                     const url = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
                     setQrDataUrl(url);
