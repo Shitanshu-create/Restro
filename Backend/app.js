@@ -56,7 +56,7 @@ if (env.netlifyUrlCors) {
 
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.has(origin)) {
+        if (!origin || allowedOrigins.has(origin) || /\.netlify\.app$/.test(origin)) {
             return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS"));
