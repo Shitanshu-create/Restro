@@ -4,7 +4,10 @@ import env from "../config/env.js";
 import crypto from "crypto";
 async function authUser(req, res, next) {
     try {
-        const token = req.cookies.token;
+        const token = req.cookies.token ||
+            (req.headers.authorization?.startsWith("Bearer ")
+                ? req.headers.authorization.slice(7)
+                : null);
         if(!token){
             return res.status(401).json({message: "Please Login to continue"});  
         }

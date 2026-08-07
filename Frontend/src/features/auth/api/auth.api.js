@@ -9,6 +9,15 @@ const api = axios.create({
     headers: ({ "Content-Type": "application/json" })
 });
 
+// Attach stored token to every request
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+});
+
 
 
 function getAuthErrorMessages(err, fallback) {
@@ -39,6 +48,9 @@ export const registerUser = async (userData) => {
 export const loginUser = async (userData) => {
     try {
         const response = await api.post("/api/auth/login", userData);
+        if (response.data?.token) {
+            localStorage.setItem("auth_token", response.data.token);
+        }
         return response.data;
     } catch (err) {
         return {
@@ -53,8 +65,10 @@ export const loginUser = async (userData) => {
 export async function logoutUser() {
     try {
         const response = await api.post("/api/auth/logout", {});
+        localStorage.removeItem("auth_token");
         return response.data;
     } catch (err) {
+        localStorage.removeItem("auth_token");
         throw err;
     }
 }
@@ -68,4 +82,4 @@ export async function getMe() {
     } catch (err) {
         return null;
     }
-}
+}

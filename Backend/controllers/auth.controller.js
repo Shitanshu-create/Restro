@@ -133,6 +133,7 @@ async function loginUserController(req, res, next) {
         res.status(200).json({
             success: true,
             message: "Logged In Successfully",
+            token,
             user: { staffId: user.staffId, name: user.name, email: user.email, isAdmin: user.isAdmin, role: user.role }
         });
     }
@@ -150,7 +151,10 @@ async function loginUserController(req, res, next) {
  */
 async function logoutUserController(req, res, next) {
     try {
-        const token = req.cookies.token;
+        const token = req.cookies.token ||
+            (req.headers.authorization?.startsWith("Bearer ")
+                ? req.headers.authorization.slice(7)
+                : null);
         if (token) {
             const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
             await tokenBlacklistModel.create({ token: tokenHash });
