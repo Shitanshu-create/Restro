@@ -82,7 +82,7 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
               <span className={`veg-dot-sm ${dish.isVeg ? "is-veg" : "is-nonveg"}`} />
               <h2 className="dish-sheet-title">{dish.name}</h2>
             </div>
-            <p className="dish-sheet-desc">{dish.description || "Freshly cooked to order using authentic high-quality ingredients."}</p>
+            <p className="dish-sheet-desc">{dish.description}</p>
             <div className="dish-meta-tags">
               {dish.preparationTime && <span>⏱️ {dish.preparationTime} mins prep</span>}
               {dish.isBestseller && <span className="bestseller-tag">★ Bestseller</span>}

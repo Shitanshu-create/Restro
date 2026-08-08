@@ -91,10 +91,6 @@ const TablesPage = () => {
         <div className="tables-page">
             {/* Page Header Bar */}
             <div className="tables-top-bar">
-                <div>
-                    <h1 className="tables-header-title">Tables</h1>
-                    <p className="tables-header-subtitle">Overview and management for tables</p>
-                </div>
                 <button className="add-table-primary-btn" onClick={() => setShowAddModal(true)}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                         <line x1="12" y1="5" x2="12" y2="19" />
@@ -158,23 +154,23 @@ const TablesPage = () => {
                                     <span className="table-card-name">{t.name}</span>
                                     <span className="table-card-token-sub">({t.qrToken})</span>
                                 </div>
-                                 <span
-                                     className={`table-status-pill pill-${t.status.toLowerCase()}`}
-                                     style={{ cursor: "pointer" }}
-                                     title="Click to toggle availability"
-                                     onClick={(e) => {
-                                         e.stopPropagation();
-                                         if (t.status === "Occupied") {
-                                             if (!window.confirm(`Warning: Table ${t.tableNumber.replace("T-", "")} is currently occupied with active orders. Are you sure you want to override and mark it as Available?`)) {
-                                                 return;
-                                             }
-                                         }
-                                         handleToggleTableAvailability(t.tableNumber);
-                                     }}
-                                 >
-                                     <span className="pill-dot" />
-                                     {t.status}
-                                 </span>
+                                <span
+                                    className={`table-status-pill pill-${t.status.toLowerCase()}`}
+                                    style={{ cursor: "pointer" }}
+                                    title="Click to toggle availability"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (t.status === "Occupied") {
+                                            if (!window.confirm(`Warning: Table ${t.tableNumber.replace("T-", "")} is currently occupied with active orders. Are you sure you want to override and mark it as Available?`)) {
+                                                return;
+                                            }
+                                        }
+                                        handleToggleTableAvailability(t.tableNumber);
+                                    }}
+                                >
+                                    <span className="pill-dot" />
+                                    {t.status}
+                                </span>
                             </div>
                             <div className="table-card-bottom-row" style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span className="table-card-time">Capacity: {t.capacity} Guests</span>

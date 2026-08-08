@@ -49,7 +49,7 @@ const ReviewsPage = () => {
     const metrics = useMemo(() => {
         const total = dateFilteredReviews.length;
         if (total === 0) return { avg: "0.0", total: 0, fiveStarPct: "0%", positiveCount: 0 };
-        
+
         const sum = dateFilteredReviews.reduce((acc, r) => acc + r.rating, 0);
         const avg = (sum / total).toFixed(1);
         const fiveStarCount = dateFilteredReviews.filter((r) => r.rating === 5).length;
@@ -73,10 +73,6 @@ const ReviewsPage = () => {
         <div className="reviews-page">
             {/* Header */}
             <div className="reviews-top-bar">
-                <div>
-                    <h1 className="reviews-header-title">Customer Reviews</h1>
-                    <p className="reviews-header-subtitle">Feedback and ratings left by customers during their dining sessions</p>
-                </div>
                 <DateRangeFilter onChange={setDateRange} />
             </div>
 
@@ -143,7 +139,7 @@ const ReviewsPage = () => {
                         const dateString = review.createdAt
                             ? new Date(review.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
                             : "Just now";
-                        
+
                         // Generate initials for avatar
                         const initials = review.customerName
                             ? review.customerName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)

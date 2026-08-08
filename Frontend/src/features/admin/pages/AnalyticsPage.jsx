@@ -166,11 +166,8 @@ const AnalyticsPage = () => {
   return (
     <div className="analytics-page">
       {/* Top Header Filter Bar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
-        <div>
-          <h1 className="analytics-section-title" style={{ fontSize: "24px" }}>Analytics Dashboard</h1>
-          <p className="analytics-section-subtitle">Real-time revenue, volume and dish metrics</p>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", flexWrap: "wrap", gap: "12px" }}>
+
         <DateRangeFilter onChange={setDateRange} />
       </div>
 

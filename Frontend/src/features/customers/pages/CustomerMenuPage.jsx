@@ -408,7 +408,7 @@ const CustomerMenuPage = () => {
         <div className="customer-brand">
           <div className="brand-dot-logo"><ClockIcon /></div>
           <div>
-            <h1 className="mobile-brand-title">Restro Digital</h1>
+            <h1 className="mobile-brand-title">Restro</h1>
             <span className="mobile-table-tag">Table {tableNo}</span>
           </div>
         </div>
@@ -526,10 +526,6 @@ const CustomerMenuPage = () => {
 
           <section className="all-dishes-section">
             <div className="all-dishes-head">
-              <div>
-                <h2>{isAllView ? "All Dishes" : `${selectedCategory?.name || "Category"} Dishes`}</h2>
-                {!isAllView && <p>Authentic flavors, rich spices, unforgettable taste.</p>}
-              </div>
               <div className="dish-filter-pills">
                 {allDishFilters.map((filter) => (
                   <button

@@ -268,10 +268,6 @@ const MenuPage = () => {
     <div className="swiggy-menu-page">
       {/* 1. Header Bar */}
       <header className="swiggy-menu-header">
-        <div className="header-left-title">
-          <h1>Menu Management</h1>
-          <p>Manage items, categories, pricing, and upsells in real-time</p>
-        </div>
         <div className="header-right-actions">
           <label className="btn-import-menu">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -295,10 +291,6 @@ const MenuPage = () => {
           </button>
         </div>
       </header>
-
-      {/* Action Notification Banner */}
-      {actionMsg && <div className="swiggy-action-toast">{actionMsg}</div>}
-      {error && <div className="swiggy-error-toast">{error}</div>}
 
       {/* 2. Sticky Horizontal Category Navigation Bar */}
       <nav className="sticky-category-nav-bar">
@@ -393,7 +385,7 @@ const MenuPage = () => {
                 className={`switch-btn ${dietFilter === d ? "active" : ""}`}
                 onClick={() => setDietFilter(d)}
               >
-                {d === "all" ? "All Diets" : d === "veg" ? "🌱 Veg" : "🍖 Non-Veg"}
+                {d === "all" ? "All Diets" : d === "veg" ? "Veg" : "Non-Veg"}
               </button>
             ))}
           </div>

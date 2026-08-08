@@ -109,13 +109,6 @@ const StaffsPage = () => {
     };
     return (
         <div className="staffs-page">
-            {/* Top Header */}
-            <div className="staffs-top-bar">
-                <div>
-                    <h1 className="staffs-header-title">Staff Management</h1>
-                    <p className="staffs-header-subtitle">Review, approve, or reject staff access requests</p>
-                </div>
-            </div>
             {actionMsg && <div style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#047857", padding: "12px 16px", borderRadius: "10px", marginBottom: "16px", fontSize: "14px", fontWeight: "600" }}>{actionMsg}</div>}
             {error && <div className="login-error" role="alert" style={{ marginBottom: "16px" }}>{error}</div>}
             {/* Stat Cards */}
