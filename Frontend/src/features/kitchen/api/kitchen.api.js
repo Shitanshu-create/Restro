@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "../../../components/config/env.js";
+import { env } from "../../../config/env.js";
 const api = axios.create({
     baseURL: env.apiBaseUrl,
     withCredentials: true,

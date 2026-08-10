@@ -465,4 +465,54 @@
 }
 @media (max-width: 600px) {
   .orders-board-kanban { grid-template-columns: 1fr; }
+  .hide-mobile {
+    display: none !important;
+  }
+  .orders-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .orders-search-box {
+    width: 100%;
+    min-width: 0;
+  }
+  .orders-actions-group {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+  }
+  .order-history-btn {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+  .orders-view-toggle {
+    flex: 1 1 calc(50% - 4px);
+    display: flex;
+  }
+  .view-toggle-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  .orders-refresh-btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .orders-status-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .orders-status-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .status-tab-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
 }

@@ -145,7 +145,7 @@ const DishTag = ({ isVeg }) => (
 const CustomerMenuPage = () => {
   const { categories, loading: menuLoading, error: menuError } = useMenu();
   const { customer, setCustomer } = useCustomerAuth();
-  const { orders, handlePlaceOrder, loading: orderLoading, reload: reloadOrders } = useCustomerOrders();
+  const { orders, handlePlaceOrder, loading: orderLoading, reload: reloadOrders, readyNotifications, clearReadyNotification } = useCustomerOrders();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [dietaryFilter, setDietaryFilter] = useState("all");
@@ -435,6 +435,12 @@ const CustomerMenuPage = () => {
           <button type="button" onClick={() => setOrderSuccessMsg(null)} aria-label="Dismiss success message">x</button>
         </div>
       )}
+      {readyNotifications.map((orderId) => (
+        <div key={orderId} className="mobile-success-toast order-ready-toast" role="status" aria-live="polite">
+          <span>🍽️ Your order #{orderId} is Ready! Please collect it.</span>
+          <button type="button" onClick={() => clearReadyNotification(orderId)} aria-label="Dismiss message">x</button>
+        </div>
+      ))}
       {(actionError || menuError || tableError) && <div className="mobile-error-toast" role="alert">{tableError || actionError || menuError}</div>}
 
       <div className="customer-menu-layout">

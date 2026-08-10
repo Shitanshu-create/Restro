@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as kitchenApi from "../api/kitchen.api.js";
 
 
@@ -9,8 +9,11 @@ export function useKitchen() {
     const [readyOrders, setReadyOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        setLoading(true);
+        if (isFirstLoad.current) {
+            setLoading(true);
+        }
         setError(null);
         const [pendingRes, readyRes] = await Promise.all([
             kitchenApi.getPendingOrders(),
@@ -20,6 +23,7 @@ export function useKitchen() {
         if (readyRes.success) setReadyOrders(readyRes.orders || []);
         if (!pendingRes.success) setError(pendingRes.message);
         setLoading(false);
+        isFirstLoad.current = false;
     }, []);
 
 
@@ -27,7 +31,7 @@ export function useKitchen() {
 
     useEffect(() => {
         loadOrders();
-        const interval = setInterval(loadOrders, 30000);
+        const interval = setInterval(loadOrders, 180000);
         return () => clearInterval(interval);
     }, [loadOrders]);
     const handleMarkReady = async (orderId) => {

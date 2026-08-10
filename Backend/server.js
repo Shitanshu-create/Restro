@@ -5,7 +5,7 @@ import { startAutoUnoccupy } from "./utils/autoUnoccupy.js";
 
 connectDB().then(() => {
     startAutoUnoccupy();
-    app.listen(env.port, () => {
+    app.listen(env.port,"0.0.0.0", () => {
         console.log(`Server running on port ${env.port}`);
     });
 });

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "../../../components/config/env.js";
+import { env } from "../../../config/env.js";
 
 
 
@@ -125,7 +125,7 @@ export const initiatePayment = async (orderId) => {
 };
 
 
- 
+
 export const verifyPayment = async (paymentData) => {
     try {
         const res = await api.post("/api/payment/verify", paymentData);

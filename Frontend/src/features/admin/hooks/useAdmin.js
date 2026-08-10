@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import * as adminApi from "../api/admin.api.js";
 export function useTables() {
     const [tables, setTables] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const isFirstLoad = useRef(true);
     const loadTables = useCallback(async () => {
-        setLoading(true);
+        if (isFirstLoad.current) {
+            setLoading(true);
+        }
         setError(null);
         const res = await adminApi.getAllTables();
         if (res.success) {
@@ -14,10 +17,11 @@ export function useTables() {
             setError(res.message);
         }
         setLoading(false);
+        isFirstLoad.current = false;
     }, []);
     useEffect(() => {
         loadTables();
-        const interval = setInterval(loadTables, 10000);
+        const interval = setInterval(loadTables, 180000);
         return () => clearInterval(interval);
     }, [loadTables]);
     const handleCreateTable = async (capacity) => {
@@ -172,8 +176,11 @@ export function useOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        setLoading(true);
+        if (isFirstLoad.current) {
+            setLoading(true);
+        }
         setError(null);
         const res = await adminApi.getAllOrders();
         if (res.success) {
@@ -182,12 +189,11 @@ export function useOrders() {
             setError(res.message);
         }
         setLoading(false);
+        isFirstLoad.current = false;
     }, []);
-
-    
     useEffect(() => {
         loadOrders();
-        const interval = setInterval(loadOrders, 10000);
+        const interval = setInterval(loadOrders, 180000);
         return () => clearInterval(interval);
     }, [loadOrders]);
     const handleMarkCashPaid = async (orderId) => {

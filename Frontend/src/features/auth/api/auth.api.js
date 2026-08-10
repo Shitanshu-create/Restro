@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "../../../components/config/env.js";
+import { env } from "../../../config/env.js";
 
 
 
@@ -82,4 +82,4 @@ export async function getMe() {
     } catch (err) {
         return null;
     }
-}
+}

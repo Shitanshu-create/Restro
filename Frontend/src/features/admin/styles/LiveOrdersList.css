@@ -213,3 +213,30 @@
   align-items: center;
   gap: 3px;
 }
+
+@media (max-width: 480px) {
+  .recent-orders-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .recent-order-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+    padding: 14px;
+  }
+  .recent-order-info {
+    width: 100%;
+  }
+  .recent-order-amount-col {
+    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 4px;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 8px;
+  }
+}

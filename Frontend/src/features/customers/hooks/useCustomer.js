@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as customerApi from "../api/customer.api.js";
 
 
@@ -88,18 +88,42 @@ export function useCustomerOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [readyNotifications, setReadyNotifications] = useState([]);
+    const prevOrdersRef = useRef([]);
 
 
+    const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        setLoading(true);
+        if (isFirstLoad.current) {
+            setLoading(true);
+        }
         setError(null);
         const res = await customerApi.getMyOrders();
         if (res.success) {
-            setOrders(res.orders || []);
+            const fetchedOrders = res.orders || [];
+            
+            // On subsequent loads, check for orders transitioning to 'Ready' status
+            if (!isFirstLoad.current && prevOrdersRef.current.length > 0) {
+                fetchedOrders.forEach((newOrder) => {
+                    const oldOrder = prevOrdersRef.current.find(o => o.orderId === newOrder.orderId);
+                    if (oldOrder && oldOrder.orderStatus !== "Ready" && newOrder.orderStatus === "Ready") {
+                        setReadyNotifications((prev) => {
+                            if (!prev.some(id => id === newOrder.orderId)) {
+                                return [...prev, newOrder.orderId];
+                            }
+                            return prev;
+                        });
+                    }
+                });
+            }
+            
+            setOrders(fetchedOrders);
+            prevOrdersRef.current = fetchedOrders;
         } else if (res.message !== "No Orders Found") {
             setError(res.message);
         }
         setLoading(false);
+        isFirstLoad.current = false;
     }, []);
 
 
@@ -126,6 +150,10 @@ export function useCustomerOrders() {
         return { success: false, message: res.message };
     };
 
+    const clearReadyNotification = (orderId) => {
+        setReadyNotifications((prev) => prev.filter(id => id !== orderId));
+    };
 
-    return { orders, loading, error, handlePlaceOrder, reload: loadOrders };
+
+    return { orders, loading, error, handlePlaceOrder, reload: loadOrders, readyNotifications, clearReadyNotification };
 }

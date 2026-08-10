@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import StatCard from "../components/StatCard.jsx";
 import { useTables } from "../hooks/useAdmin.js";
-import { env } from "../../../components/config/env.js";
+import { env } from "../../../config/env.js";
 import "../styles/TablesPage.css";
 
 

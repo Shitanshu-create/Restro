@@ -264,16 +264,16 @@ const OrdersPage = () => {
         </div>
       ) : (
         /* List View */
-        <div className="orders-table-wrapper">
+        <div className="orders-table-wrapper" style={{ overflowX: "auto", width: "100%" }}>
           <table className="orders-table">
             <thead>
               <tr>
                 <th>ORDER</th>
                 <th>TABLE</th>
-                <th>PAYMENT</th>
+                <th className="hide-mobile">PAYMENT</th>
                 <th>ITEMS</th>
                 <th>STATUS</th>
-                <th>TIME</th>
+                <th className="hide-mobile">TIME</th>
                 <th>TOTAL</th>
                 <th>ACTION</th>
               </tr>
@@ -291,7 +291,7 @@ const OrdersPage = () => {
                   >
                     <td className="order-id-cell">#{order.id}</td>
                     <td className="order-table-cell">{order.tableNo}</td>
-                    <td className="order-customer-cell">{order.paymentMode || "Cash"} ({order.paymentStatus})</td>
+                    <td className="order-customer-cell hide-mobile">{order.paymentMode || "Cash"} ({order.paymentStatus})</td>
                     <td className="order-items-cell">
                       <span className="order-items-truncate">{order.items}</span>
                     </td>
@@ -301,7 +301,7 @@ const OrdersPage = () => {
                         {order.status}
                       </span>
                     </td>
-                    <td className="order-time-cell">
+                    <td className="order-time-cell hide-mobile">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                       </svg>
