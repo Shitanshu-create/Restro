@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { MenuItemModel, CategoryModel } from "../models/menu.model.js";
+import { BannerModel } from "../models/banner.model.js";
 
 
 
@@ -644,6 +645,128 @@ async function bulkOperationsController(req, res, next) {
     }
 }
 
+/**
+ * @description Get active banners for public customer menu
+ * @route GET /api/menu/getBanners
+ * @access Public
+ */
+async function getBannersController(req, res, next) {
+    try {
+        const banners = await BannerModel.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
+        return res.status(200).json({
+            success: true,
+            banners
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * @description Fetch all banners for Admin management
+ * @route GET /api/admin/fetchAllBanners
+ * @access Private (Admin/Staff)
+ */
+async function fetchAllBannersController(req, res, next) {
+    try {
+        const banners = await BannerModel.find().sort({ order: 1, createdAt: -1 });
+        return res.status(200).json({
+            success: true,
+            banners
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * @description Create a new promotional banner
+ * @route POST /api/admin/createBanner
+ * @access Private (Admin)
+ */
+async function createBannerController(req, res, next) {
+    try {
+        const { title, subtitle, image, altText, isActive, order } = req.body;
+        if (!image) {
+            return res.status(400).json({ message: "Banner image is required" });
+        }
+        const newBanner = new BannerModel({
+            title: title || "",
+            subtitle: subtitle || "",
+            image,
+            altText: altText || title || "Promotional Food Banner",
+            isActive: isActive !== undefined ? Boolean(isActive) : true,
+            order: order ? Number(order) : 0
+        });
+        await newBanner.save();
+        return res.status(201).json({
+            success: true,
+            message: "Banner created successfully",
+            banner: newBanner
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * @description Update an existing banner
+ * @route PATCH /api/admin/updateBanner
+ * @access Private (Admin)
+ */
+async function updateBannerController(req, res, next) {
+    try {
+        const { id, _id, title, subtitle, image, altText, isActive, order } = req.body;
+        const bannerId = id || _id;
+        if (!bannerId) {
+            return res.status(400).json({ message: "Banner ID is required" });
+        }
+        const banner = await BannerModel.findById(bannerId);
+        if (!banner) {
+            return res.status(404).json({ message: "Banner not found" });
+        }
+        if (title !== undefined) banner.title = title;
+        if (subtitle !== undefined) banner.subtitle = subtitle;
+        if (image !== undefined) banner.image = image;
+        if (altText !== undefined) banner.altText = altText;
+        if (isActive !== undefined) banner.isActive = Boolean(isActive);
+        if (order !== undefined) banner.order = Number(order);
+
+        await banner.save();
+        return res.status(200).json({
+            success: true,
+            message: "Banner updated successfully",
+            banner
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * @description Remove a banner
+ * @route DELETE /api/admin/removeBanner
+ * @access Private (Admin)
+ */
+async function removeBannerController(req, res, next) {
+    try {
+        const { id, _id } = req.body;
+        const bannerId = id || _id || req.query.id;
+        if (!bannerId) {
+            return res.status(400).json({ message: "Banner ID is required" });
+        }
+        const deleted = await BannerModel.findByIdAndDelete(bannerId);
+        if (!deleted) {
+            return res.status(404).json({ message: "Banner not found" });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Banner removed successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 export default {
     createCategoryController,
@@ -660,5 +783,10 @@ export default {
     updateCategoryController,
     reorderCategoriesController,
     bulkOperationsController,
-    getMenuController
+    getMenuController,
+    getBannersController,
+    fetchAllBannersController,
+    createBannerController,
+    updateBannerController,
+    removeBannerController
 };

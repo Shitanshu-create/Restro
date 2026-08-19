@@ -56,14 +56,35 @@ async function updateOrderStatusController(req, res, next) {
             return res.status(400).json({ message: "Order is Already Marked Ready" });
         }
         existingOrder.orderStatus = "Ready";
+        existingOrder.readyAt = new Date();
         await existingOrder.save();
+
+        // Section 3.2: Check if all orders for this table are Ready. If so, mark table as Inactive (isOccupied = false).
+        if (existingOrder.tableNo) {
+            const tableNoStr = String(existingOrder.tableNo);
+            const pendingForTable = await OrderModel.findOne({
+                tableNo: existingOrder.tableNo,
+                orderStatus: { $ne: "Ready" }
+            });
+
+            if (!pendingForTable) {
+                const { TableModel } = await import("../models/table.model.js");
+                const formattedTableNo = tableNoStr.startsWith("T-") ? tableNoStr : `T-${tableNoStr.padStart(2, "0")}`;
+                await TableModel.findOneAndUpdate(
+                    { $or: [{ tableNumber: tableNoStr }, { tableNumber: formattedTableNo }] },
+                    { $set: { isOccupied: false, occupiedAt: null, currentOrderId: null } }
+                );
+            }
+        }
+
         res.status(200).json({
             success: true,
             message: "Order Marked as Ready",
             order: {
                 orderId: existingOrder.orderId,
                 tableNo: existingOrder.tableNo,
-                orderStatus: existingOrder.orderStatus
+                orderStatus: existingOrder.orderStatus,
+                readyAt: existingOrder.readyAt
             }
         });
     } catch (error) {

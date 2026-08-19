@@ -8,17 +8,26 @@ import { getPresetRange } from "../components/DateRangeFilter.jsx";
 const STATUS_TABS = ["All", "Preparing", "Ready"];
 
 const OrdersPage = () => {
-  const { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload } = useOrders();
+  const { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload, fetchHistory } = useOrders();
   const [activeStatus, setActiveStatus] = useState("All");
   const [viewMode, setViewMode] = useState("List");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyOrders, setHistoryOrders] = useState([]);
   const [dateRange, setDateRange] = useState(() => getPresetRange("today"));
   const [draggedOrderId, setDraggedOrderId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
 
-  const formattedOrders = orders.map((o) => {
+  const handleOpenHistoryModal = async () => {
+    setShowHistoryModal(true);
+    const hist = await fetchHistory();
+    setHistoryOrders(hist);
+  };
+
+  const currentOrdersSource = showHistoryModal ? (historyOrders.length > 0 ? historyOrders : orders) : orders;
+
+  const formattedOrders = currentOrdersSource.map((o) => {
     const itemSummary = Array.isArray(o.items)
       ? o.items.map((i) => `${i.name || i.itemId}${i.quantity && i.quantity !== "Full" ? ` (${i.quantity})` : ""}`).join(", ")
       : String(o.items || "");
@@ -82,7 +91,6 @@ const OrdersPage = () => {
   };
 
   const handleDragLeave = (e, colStatus) => {
-    // Only reset if exiting the column element itself
     if (e.currentTarget.contains(e.relatedTarget)) return;
     if (dragOverColumn === colStatus) {
       setDragOverColumn(null);
@@ -97,7 +105,6 @@ const OrdersPage = () => {
     setDraggedOrderId(null);
 
     if (id) {
-      // Optimistic UI update check
       const targetOrder = formattedOrders.find((o) => String(o.id) === String(id));
       if (targetOrder && targetOrder.status !== targetStatus) {
         await handleUpdateOrderStatus(id, targetStatus);
@@ -150,7 +157,7 @@ const OrdersPage = () => {
           <button
             type="button"
             className="order-history-btn"
-            onClick={() => setShowHistoryModal(true)}
+            onClick={handleOpenHistoryModal}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
@@ -244,7 +251,7 @@ const OrdersPage = () => {
                       <div className="kanban-card-customer">{order.customer}</div>
                       <div className="kanban-card-items">{order.items}</div>
                       <div className="kanban-card-footer">
-                        <span className="kanban-card-amount">${order.total.toFixed(2)}</span>
+                        <span className="kanban-card-amount">₹{order.total.toFixed(2)}</span>
                         <span className="kanban-card-time">{order.time}</span>
                       </div>
                       <div className="kanban-card-actions">
@@ -307,7 +314,7 @@ const OrdersPage = () => {
                       </svg>
                       {order.time}
                     </td>
-                    <td className="order-total-cell">${order.total.toFixed(2)}</td>
+                    <td className="order-total-cell">₹{order.total.toFixed(2)}</td>
                     <td className="order-action-cell">
                       <div className="order-action-row">
                         {actionFor(order)}

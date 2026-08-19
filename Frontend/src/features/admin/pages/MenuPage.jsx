@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useMenu } from "../hooks/useAdmin.js";
 import MenuDrawer from "../components/MenuDrawer.jsx";
+import BannerManagerModal from "../components/BannerManagerModal.jsx";
 import "../styles/MenuPage.css";
 
 const MenuPage = () => {
@@ -31,6 +32,7 @@ const MenuPage = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [categoryModal, setCategoryModal] = useState(null); // 'create' or 'rename'
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [targetCategoryName, setTargetCategoryName] = useState("");
   const [newCategoryInput, setNewCategoryInput] = useState("");
   const [actionMsg, setActionMsg] = useState(null);
@@ -269,6 +271,14 @@ const MenuPage = () => {
       {/* 1. Header Bar */}
       <header className="swiggy-menu-header">
         <div className="header-right-actions">
+          <button type="button" className="btn-export-menu" onClick={() => setIsBannerModalOpen(true)} style={{ background: "#fff7ed", color: "#c2410c", borderColor: "#fed7aa" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            Manage Banners
+          </button>
           <label className="btn-import-menu">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -634,6 +644,11 @@ const MenuPage = () => {
           </div>
         </div>
       )}
+      {/* Banner Management Modal */}
+      <BannerManagerModal
+        isOpen={isBannerModalOpen}
+        onClose={() => setIsBannerModalOpen(false)}
+      />
     </div>
   );
 };

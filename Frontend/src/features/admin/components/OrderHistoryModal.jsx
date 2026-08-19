@@ -11,8 +11,6 @@ const PRESETS = [
   { label: "Custom Range", value: "custom" },
 ];
 
-const STATUSES = ["All", "Incoming", "Preparing", "Ready", "Delivered"];
-
 const OrderHistoryModal = ({ isOpen, onClose, dateRange, onDateRangeChange, statusFilter, onStatusFilterChange, totalCount, totalRevenue }) => {
   const [activePreset, setActivePreset] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
@@ -77,7 +75,7 @@ const OrderHistoryModal = ({ isOpen, onClose, dateRange, onDateRangeChange, stat
             <div className="history-stat-divider" />
             <div className="history-stat-item">
               <span className="stat-label">Total Period Revenue</span>
-              <span className="stat-value highlight">${totalRevenue.toFixed(2)}</span>
+              <span className="stat-value highlight">₹{totalRevenue.toFixed(2)}</span>
             </div>
           </div>
 
@@ -120,23 +118,6 @@ const OrderHistoryModal = ({ isOpen, onClose, dateRange, onDateRangeChange, stat
                 </button>
               </div>
             )}
-          </div>
-
-          {/* Order Status Filter */}
-          <div className="filter-section">
-            <label className="filter-section-label">Order Status</label>
-            <div className="status-buttons-row">
-              {STATUSES.map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  className={`status-filter-pill ${statusFilter === st ? "active" : ""}`}
-                  onClick={() => onStatusFilterChange(st)}
-                >
-                  {st}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 

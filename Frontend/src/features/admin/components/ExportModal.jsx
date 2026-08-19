@@ -13,7 +13,7 @@ const ExportModal = ({ isOpen, onClose, orders }) => {
   });
 
   const handleExportCSV = () => {
-    const headers = ["Order ID", "Table", "Customer", "Payment Method", "Amount ($)", "Status", "Date & Time"];
+    const headers = ["Order ID", "Table", "Customer", "Payment Method", "Amount (₹)", "Status", "Date & Time"];
     const rows = filteredOrders.map((o) => [
       `"#${o.orderId || o.id}"`,
       `"${o.tableNo || ""}"`,
@@ -78,7 +78,7 @@ const ExportModal = ({ isOpen, onClose, orders }) => {
                   <td>#${o.orderId || o.id}</td>
                   <td>${o.tableNo}</td>
                   <td>${o.paymentMode || 'Cash'}</td>
-                  <td>$${Number(o.amount || o.total || 0).toFixed(2)}</td>
+                  <td>₹${Number(o.amount || o.total || 0).toFixed(2)}</td>
                   <td class="${o.paymentStatus === 'Paid' ? 'status-paid' : 'status-pending'}">${o.paymentStatus}</td>
                   <td>${o.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A'}</td>
                 </tr>

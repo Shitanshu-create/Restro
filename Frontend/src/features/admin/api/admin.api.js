@@ -238,9 +238,9 @@ export const removeItemFromCategory = async ({ itemId, itemName, categoryName })
 
 
 // ── Orders ───────────────────────────────────────────────────────────────────
-export const getAllOrders = async () => {
+export const getAllOrders = async (params = {}) => {
     try {
-        const res = await api.get("/api/admin/getAllOrders");
+        const res = await api.get("/api/admin/getAllOrders", { params });
         return res.data;
     } catch (err) {
         return { success: false, message: getErrorMessage(err, "Failed to fetch orders") };
@@ -303,6 +303,43 @@ export const getAllReviews = async (params = {}) => {
         return res.data;
     } catch (err) {
         return { success: false, message: getErrorMessage(err, "Failed to fetch reviews") };
+    }
+};
+
+// ── Banners ──────────────────────────────────────────────────────────────────
+export const fetchAllBanners = async () => {
+    try {
+        const res = await api.get("/api/admin/fetchAllBanners");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch banners") };
+    }
+};
+
+export const createBanner = async (bannerData) => {
+    try {
+        const res = await api.post("/api/admin/createBanner", bannerData);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to create banner") };
+    }
+};
+
+export const updateBanner = async (bannerData) => {
+    try {
+        const res = await api.patch("/api/admin/updateBanner", bannerData);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to update banner") };
+    }
+};
+
+export const removeBanner = async (bannerId) => {
+    try {
+        const res = await api.delete("/api/admin/removeBanner", { data: { id: bannerId } });
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to remove banner") };
     }
 };
 

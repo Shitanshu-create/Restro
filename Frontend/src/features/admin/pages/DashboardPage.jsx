@@ -11,30 +11,39 @@ const DashboardPage = () => {
   const { tables } = useTables();
   const { orders } = useOrders();
 
-  const todayRevenue = orders
-    .filter((o) => {
-      const isToday = o.createdAt && new Date(o.createdAt).toDateString() === new Date().toDateString();
-      return isToday && o.paymentStatus === "Paid";
-    })
-    .reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
 
-  const displayRevenue = todayRevenue > 0 ? `$${todayRevenue.toFixed(2)}` : "$0.00";
-  const displayOrdersCount = orders.length;
+  // 1.1 KPI Cards — TODAY ONLY
+  const todayOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= startOfToday);
 
-  const paidOrders = orders.filter((o) => o.paymentStatus === "Paid");
-  const displayAvgValue = paidOrders.length > 0
-    ? `$${(paidOrders.reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0) / paidOrders.length).toFixed(2)}`
-    : "$0.00";
+  // Revenue Today
+  const todayPaidOrders = todayOrders.filter((o) => o.paymentStatus === "Paid");
+  const todayRevenue = todayPaidOrders.reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0);
+  const displayRevenue = `₹${todayRevenue.toFixed(2)}`;
 
-  // Upsell proxy: orders containing customized items, variant prices, or add-ons
-  const upsellOrders = orders.filter(
-    (o) => o.items && o.items.some((item) => (item.selectedAddOns && item.selectedAddOns.length > 0) || item.variantPrice > 0)
+  // Number of Orders Today
+  const displayOrdersCount = todayOrders.length;
+
+  // Average Order Value Today
+  const displayAvgValue = todayPaidOrders.length > 0
+    ? `₹${(todayRevenue / todayPaidOrders.length).toFixed(2)}`
+    : "₹0.00";
+
+  // 1.3 Upsell Performance KPI — Today Only
+  // % of customers who ordered online and added at least one "Add On" item to their order
+  const todayOnlineOrders = todayOrders.filter((o) => o.customerId || o.paymentMode === "Online" || o.paymentMode === "UPI" || o.tableNo);
+  const todayOnlineOrdersWithAddOn = todayOnlineOrders.filter((o) =>
+    o.items && o.items.some((item) => (item.selectedAddOns && item.selectedAddOns.length > 0) || (item.addOns && item.addOns.length > 0))
   ).length;
-  const displayUpsell = orders.length > 0 ? `${((upsellOrders / orders.length) * 100).toFixed(1)}%` : "0.0%";
 
-  // QR scan proxy: orders with a tableNo set
-  const qrOrders = orders.filter((o) => o.tableNo).length;
-  const displayQr = orders.length > 0 ? `${((qrOrders / orders.length) * 100).toFixed(1)}%` : "100.0%";
+  const displayUpsell = todayOnlineOrders.length > 0
+    ? `${((todayOnlineOrdersWithAddOn / todayOnlineOrders.length) * 100).toFixed(1)}%`
+    : "0.0%";
+
+  // QR Orders % Today
+  const todayQrOrders = todayOrders.filter((o) => o.tableNo).length;
+  const displayQr = todayOrders.length > 0 ? `${((todayQrOrders / todayOrders.length) * 100).toFixed(1)}%` : "100.0%";
 
   return (
     <div className="dashboard-page">

@@ -1,0 +1,215 @@
+/* Filter Modal Styles */
+.filter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeInOverlay 0.2s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.filter-modal-sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 500px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (min-width: 640px) {
+  .filter-modal-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+  .filter-modal-sheet {
+    border-radius: 24px;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2);
+    animation: zoomInSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes zoomInSheet {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.filter-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.filter-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0f172a;
+}
+
+.filter-header-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.filter-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.filter-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.filter-modal-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filter-group-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.filter-chip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.filter-chip-btn:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.filter-chip-btn.active {
+  border-color: #FF7A1A;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.chip-check {
+  font-weight: 800;
+  font-size: 14px;
+  color: #FF7A1A;
+}
+
+.diet-veg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16a34a;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.diet-nonveg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc2626;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.filter-modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.filter-reset-btn {
+  flex: 1;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-reset-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.filter-apply-btn {
+  flex: 2;
+  padding: 14px;
+  background: #FF7A1A;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 122, 26, 0.25);
+  transition: all 0.15s ease;
+}
+
+.filter-apply-btn:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+}

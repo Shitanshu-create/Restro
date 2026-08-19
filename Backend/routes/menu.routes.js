@@ -135,4 +135,39 @@ menuRouter.post("/reorderCategories", authMiddleware.verifyAdmin, menuController
  */
 menuRouter.post("/bulkOperations", authMiddleware.verifyAdmin, menuController.bulkOperationsController);
 
+/**
+ * @description Public Route to fetch active promotional banners for customers
+ * @route GET /api/menu/getBanners
+ * @access Public
+ */
+menuRouter.get("/getBanners", menuController.getBannersController);
+
+/**
+ * @description Route to fetch all banners for admin
+ * @route GET /api/admin/fetchAllBanners
+ * @access Private (Admin/Staff)
+ */
+menuRouter.get("/fetchAllBanners", authMiddleware.authUser, menuController.fetchAllBannersController);
+
+/**
+ * @description Route to create a banner
+ * @route POST /api/admin/createBanner
+ * @access Private (Admin)
+ */
+menuRouter.post("/createBanner", authMiddleware.verifyAdmin, menuController.createBannerController);
+
+/**
+ * @description Route to update banner
+ * @route PATCH /api/admin/updateBanner
+ * @access Private (Admin)
+ */
+menuRouter.patch("/updateBanner", authMiddleware.verifyAdmin, menuController.updateBannerController);
+
+/**
+ * @description Route to remove banner
+ * @route DELETE /api/admin/removeBanner
+ * @access Private (Admin)
+ */
+menuRouter.delete("/removeBanner", authMiddleware.verifyAdmin, menuController.removeBannerController);
+
 export default menuRouter;

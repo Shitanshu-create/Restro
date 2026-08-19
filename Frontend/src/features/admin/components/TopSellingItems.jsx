@@ -29,7 +29,7 @@ const TopSellingItems = ({ orders = [] }) => {
         rank: idx + 1,
         name: item.name,
         category: `${item.orders} orders`,
-        revenue: `$${item.revenue.toFixed(2)}`,
+        revenue: `₹${item.revenue.toFixed(2)}`,
         change: "Top Seller"
       }));
   }, [orders]);

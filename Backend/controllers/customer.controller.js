@@ -164,6 +164,12 @@ async function createOrderController(req, res, next) {
 
             computedAmount += itemTotal;
 
+            const addOnsList = Array.isArray(cartItem.selectedAddOns)
+                ? cartItem.selectedAddOns
+                : Array.isArray(cartItem.addOns)
+                ? cartItem.addOns
+                : [];
+
             validatedItems.push({
                 itemId: dbItem.id,
                 name: dbItem.name,
@@ -171,7 +177,8 @@ async function createOrderController(req, res, next) {
                 count: itemCount,
                 quantity: cartItem.quantity || "Full",
                 variantPrice: cartItem.variantPrice ? Number(cartItem.variantPrice) : null,
-                isVeg: dbItem.isVeg
+                isVeg: dbItem.isVeg,
+                selectedAddOns: addOnsList
             });
         }
 
@@ -215,6 +222,14 @@ async function createOrderController(req, res, next) {
         }
 
         await newOrder.save();
+
+        // Ensure table status becomes Active (isOccupied = true)
+        const { TableModel } = await import("../models/table.model.js");
+        const formattedTableNo = String(tableNo).startsWith("T-") ? tableNo : `T-${String(tableNo).padStart(2, "0")}`;
+        await TableModel.findOneAndUpdate(
+            { $or: [{ tableNumber: tableNo }, { tableNumber: formattedTableNo }] },
+            { $set: { isOccupied: true, occupiedAt: new Date(), currentOrderId: orderId } }
+        );
 
         res.status(200).json({
             success: true,

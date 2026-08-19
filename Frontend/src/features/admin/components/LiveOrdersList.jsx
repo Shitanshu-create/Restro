@@ -9,7 +9,14 @@ const LiveOrdersList = () => {
     const navigate = useNavigate();
     const tabs = ["All", "Incoming", "Preparing", "Ready"];
 
-    const formattedOrders = orders.map((o) => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    // Section 1.2: Filter orders created strictly within the previous 60 minutes
+    const recentOrders = orders
+        .filter((o) => o.createdAt && new Date(o.createdAt) >= oneHourAgo)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const formattedOrders = recentOrders.map((o) => {
         const itemSummary = Array.isArray(o.items)
             ? o.items.map((i) => `${i.name || i.itemId}${i.quantity && i.quantity !== "Full" ? ` (${i.quantity})` : ""}`).join(", ")
             : String(o.items || "");
@@ -25,7 +32,7 @@ const LiveOrdersList = () => {
             customer: o.customerName || `Cust #${o.customerId || "01"}`,
             items: itemSummary || "Order items",
             total: Number(o.amount || o.total || 0),
-            timeAgo: o.createdAt ? calculateTimeAgo(o.createdAt) : "2m ago",
+            timeAgo: o.createdAt ? calculateTimeAgo(o.createdAt) : "Just now",
             status: status,
         };
     });
@@ -41,12 +48,12 @@ const LiveOrdersList = () => {
     const filteredOrders = formattedOrders.filter((order) => {
         if (activeTab === "All") return true;
         return order.status.toLowerCase() === activeTab.toLowerCase();
-    }).slice(0, 4);
+    });
 
     return (
         <div className="recent-orders-card">
             <div className="recent-orders-header">
-                <h2 className="recent-orders-title">recent orders</h2>
+                <h2 className="recent-orders-title">recent orders (last 1 hour)</h2>
                 <div className="recent-orders-nav">
                     <div className="recent-orders-tabs">
                         {tabs.map((tab) => (
@@ -73,7 +80,7 @@ const LiveOrdersList = () => {
                 {loading ? (
                     <div className="empty-recent-msg">Loading orders...</div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="empty-recent-msg">No recent orders</div>
+                    <div className="empty-recent-msg">No orders in the last 1 hour</div>
                 ) : (
                     filteredOrders.map((order) => (
                         <div key={order.id} className="recent-order-row">
@@ -93,7 +100,7 @@ const LiveOrdersList = () => {
                                 <div className="recent-dishes-summary">{order.items}</div>
                             </div>
                             <div className="recent-order-amount-col">
-                                <span className="recent-amount">${order.total.toFixed(2)}</span>
+                                <span className="recent-amount">₹{order.total.toFixed(2)}</span>
                                 <span className="recent-time-ago">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="12" cy="12" r="10" />

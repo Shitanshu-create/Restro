@@ -7,7 +7,7 @@ import "../styles/TablesPage.css";
 
 
 
-const FILTER_TABS = ["All", "Occupied", "Available"];
+const FILTER_TABS = ["All", "Active", "Inactive"];
 
 const TablesPage = () => {
     const { tables, loading, error, handleCreateTable, handleRemoveTable, handleToggleTableAvailability } = useTables();
@@ -24,14 +24,14 @@ const TablesPage = () => {
         tableNumber: t.tableNumber,
         qrToken: t.qrToken || "N/A",
         name: `Table ${t.tableNumber.replace("T-", "")}`,
-        status: t.isOccupied ? "Occupied" : "Available",
+        status: t.isOccupied ? "Active" : "Inactive",
         capacity: t.capacity,
         qrImageBase64: t.qrImageBase64 || null,
         qrUrl: t.qrUrl
     }));
 
-    const occupiedCount = displayTables.filter((t) => t.status === "Occupied").length;
-    const availableCount = displayTables.filter((t) => t.status === "Available").length;
+    const activeCount = displayTables.filter((t) => t.status === "Active").length;
+    const inactiveCount = displayTables.filter((t) => t.status === "Inactive").length;
     const filteredTables = displayTables.filter((t) => {
         if (activeTab === "All") return true;
         return t.status === activeTab;
@@ -54,8 +54,6 @@ const TablesPage = () => {
                     const fullQrUrl = `${clientUrl}/customer/menu/${selectedQrTable.qrToken}`;
                     const url = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
                     setQrDataUrl(url);
-                    // Persist to DB asynchronously - disabled
-                    // handleSaveQr(selectedQrTable.tableNumber, url);
                 }
             } catch (err) {
                 console.error("QR Generation Failed:", err);
@@ -66,8 +64,6 @@ const TablesPage = () => {
 
         buildAndSaveQr();
     }, [selectedQrTable]);
-
-    // const handleRefreshQrClick = async () => { ... } // Disabled
 
     const handleAddTableSubmit = async (e) => {
         e.preventDefault();
@@ -99,9 +95,8 @@ const TablesPage = () => {
                     Add Table
                 </button>
             </div>
-            {/* Top 4 Stat Cards */}
+            {/* Top Stat Cards */}
             {error && <div className="login-error" role="alert">{error}</div>}
-            {/* Stat Cards */}
             <div className="tables-stats-grid">
                 <StatCard
                     title="Total Tables"
@@ -110,18 +105,17 @@ const TablesPage = () => {
                     subtextColor="muted"
                 />
                 <StatCard
-                    title="Occupied"
-                    value={occupiedCount}
-                    subtext="Seated and ordering"
+                    title="Active"
+                    value={activeCount}
+                    subtext="Customer ordering session active"
                     subtextColor="orange"
                 />
                 <StatCard
-                    title="Available"
-                    value={availableCount}
-                    subtext="Ready for walk-in"
+                    title="Inactive"
+                    value={inactiveCount}
+                    subtext="Available for walk-in"
                     subtextColor="green"
                 />
-
             </div>
             {/* Filter Tabs */}
             <div className="tables-filter-tabs">
@@ -160,8 +154,8 @@ const TablesPage = () => {
                                     title="Click to toggle availability"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (t.status === "Occupied") {
-                                            if (!window.confirm(`Warning: Table ${t.tableNumber.replace("T-", "")} is currently occupied with active orders. Are you sure you want to override and mark it as Available?`)) {
+                                        if (t.status === "Active") {
+                                            if (!window.confirm(`Warning: Table ${t.tableNumber.replace("T-", "")} is currently active. Are you sure you want to override and mark it as Inactive?`)) {
                                                 return;
                                             }
                                         }

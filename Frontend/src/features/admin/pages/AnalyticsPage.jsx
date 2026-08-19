@@ -146,7 +146,7 @@ const AnalyticsPage = () => {
       .map((item) => ({
         name: item.name,
         orders: `${item.orders} orders`,
-        price: `$${item.price.toFixed(2)}`,
+        price: `₹${item.price.toFixed(2)}`,
         change: item.orders === 0 ? "No Sales" : "Low Volume"
       }));
 
@@ -156,7 +156,7 @@ const AnalyticsPage = () => {
       .map((item) => ({
         name: item.name,
         orders: `${item.orders} orders`,
-        price: `$${item.price.toFixed(2)}`,
+        price: `₹${item.price.toFixed(2)}`,
         change: "Top Seller"
       }));
 
@@ -180,7 +180,7 @@ const AnalyticsPage = () => {
           <div className="analytics-card-header">
             <div className="analytics-card-title-group">
               <span className="analytics-card-label">Revenue Trend</span>
-              <div className="analytics-big-stat">${totalRevenue.toFixed(2)}</div>
+              <div className="analytics-big-stat">₹{totalRevenue.toFixed(2)}</div>
               <div className="analytics-stat-badge positive">
                 Live Data
               </div>

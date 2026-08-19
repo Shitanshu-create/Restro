@@ -172,17 +172,17 @@ export function useMenu() {
         reload: loadMenu
     };
 }
-export function useOrders() {
+export function useOrders(initialParams = {}) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const isFirstLoad = useRef(true);
-    const loadOrders = useCallback(async () => {
+    const loadOrders = useCallback(async (params = initialParams) => {
         if (isFirstLoad.current) {
             setLoading(true);
         }
         setError(null);
-        const res = await adminApi.getAllOrders();
+        const res = await adminApi.getAllOrders(params);
         if (res.success) {
             setOrders(res.orders || []);
         } else {
@@ -193,7 +193,7 @@ export function useOrders() {
     }, []);
     useEffect(() => {
         loadOrders();
-        const interval = setInterval(loadOrders, 180000);
+        const interval = setInterval(loadOrders, 60000);
         return () => clearInterval(interval);
     }, [loadOrders]);
     const handleMarkCashPaid = async (orderId) => {
@@ -227,8 +227,13 @@ export function useOrders() {
         return res;
     };
 
+    const fetchHistory = async () => {
+        const res = await adminApi.getAllOrders({ history: true });
+        if (res.success) return res.orders || [];
+        return [];
+    };
 
-    return { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload: loadOrders };
+    return { orders, loading, error, handleMarkCashPaid, handleMarkReady, handleUpdateOrderStatus, reload: loadOrders, fetchHistory };
 }
 
 export function useReviews() {

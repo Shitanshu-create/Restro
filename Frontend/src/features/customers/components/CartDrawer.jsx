@@ -82,7 +82,7 @@ const CartDrawer = ({
                                             <span className={`veg-dot-sm ${item.isVeg ? "is-veg" : "is-nonveg"}`} />
                                             <span className="cart-item-name">{item.name}</span>
                                         </div>
-                                        <span className="cart-item-unit-price">${itemUnitPrice.toFixed(2)} each ({item.quantity || "Full"})</span>
+                                        <span className="cart-item-unit-price">₹{itemUnitPrice.toFixed(2)} each ({item.quantity || "Full"})</span>
                                     </div>
                                     <div className="cart-item-actions">
                                         <div className="cart-qty-controls">
@@ -101,7 +101,7 @@ const CartDrawer = ({
                                             </button>
                                         </div>
                                         <span className="cart-item-total-price">
-                                            ${(itemUnitPrice * item.count).toFixed(2)}
+                                            ₹{(itemUnitPrice * item.count).toFixed(2)}
                                         </span>
                                         <button
                                             className="cart-item-delete-btn"
@@ -141,15 +141,15 @@ const CartDrawer = ({
                         <div className="bill-summary-rows">
                             <div className="bill-row">
                                 <span>Subtotal</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>₹{subtotal.toFixed(2)}</span>
                             </div>
                             <div className="bill-row">
                                 <span>GST / Taxes (5%)</span>
-                                <span>${tax.toFixed(2)}</span>
+                                <span>₹{tax.toFixed(2)}</span>
                             </div>
                             <div className="bill-row total-row">
                                 <span>Grand Total</span>
-                                <span>${grandTotal.toFixed(2)}</span>
+                                <span>₹{grandTotal.toFixed(2)}</span>
                             </div>
                         </div>
                         {/* Submit Button */}
@@ -158,7 +158,7 @@ const CartDrawer = ({
                             onClick={onPlaceOrder}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? "Placing Order..." : `Confirm & Place Order • $${grandTotal.toFixed(2)}`}
+                            {isSubmitting ? "Placing Order..." : `Confirm & Place Order • ₹${grandTotal.toFixed(2)}`}
                         </button>
                     </div>
                 )}

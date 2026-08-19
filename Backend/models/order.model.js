@@ -28,6 +28,15 @@ const itemSchema = new mongoose.Schema({
     isVeg: {
         type: Boolean,
         default: true
+    },
+    selectedAddOns: {
+        type: [
+            {
+                name: String,
+                price: Number
+            }
+        ],
+        default: []
     }
 });
 const orderSchema = new mongoose.Schema({
@@ -85,6 +94,10 @@ const orderSchema = new mongoose.Schema({
         default: null
     },
     paidAt: {
+        type: Date,
+        default: null
+    },
+    readyAt: {
         type: Date,
         default: null
     }

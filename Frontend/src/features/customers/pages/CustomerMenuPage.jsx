@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useMenu, useCustomerOrders, useCustomerAuth } from "../hooks/useCustomer.js";
-import { resolveTable } from "../api/customer.api.js";
+import { resolveTable, getPublicBanners } from "../api/customer.api.js";
 import CartDrawer from "../components/CartDrawer.jsx";
 import OtpModal from "../components/OtpModal.jsx";
 import MyOrdersModal from "../components/MyOrdersModal.jsx";
 import DishDetailModal from "../components/DishDetailModal.jsx";
+import FilterModal from "../components/FilterModal.jsx";
 import Carousel from "../utils/Carousel.jsx";
 import NotFoundPage from "../../../pages/404NotFound.jsx";
 import ReviewModal from "../components/ReviewModal.jsx";
@@ -13,107 +14,55 @@ import indianBanner from "../../../../assets/indian.png";
 import chineseBanner from "../../../../assets/chinese.png";
 import "../styles/CustomerMenuPage.css";
 
-const bannerImages = [
-  { id: 1, src: indianBanner, alt: "Indian Specialities - Authentic Flavors & Rich Spices" },
-  { id: 2, src: chineseBanner, alt: "Chinese Delights - Wok Tossed & Delicious" }
+const defaultBanners = [
+  { id: "def-1", src: indianBanner, alt: "Indian Dishes - Authentic flavors, rich spices, unforgettable taste." },
+  { id: "def-2", src: chineseBanner, alt: "Chinese Delights - Wok Tossed & Delicious" }
 ];
 
-const categoryIconPaths = {
-  all: (
-    <>
-      <rect x="4" y="4" width="6" height="6" rx="1" />
-      <rect x="14" y="4" width="6" height="6" rx="1" />
-      <rect x="4" y="14" width="6" height="6" rx="1" />
-      <rect x="14" y="14" width="6" height="6" rx="1" />
-    </>
-  ),
-  veg: (
-    <>
-      <path d="M12 20V9" />
-      <path d="M12 10C8 4 4 4 3 4c0 5 4 8 9 6Z" />
-      <path d="M12 11c4-6 8-6 9-6 0 5-4 8-9 6Z" />
-    </>
-  ),
-  "non-veg": (
-    <>
-      <path d="M7.2 11.4c-2.4 2.4-3 5.7-1.3 7.4 1.7 1.7 5 1.1 7.4-1.3l3.9-3.9-6.1-6.1-3.9 3.9Z" />
-      <path d="M13.9 6.2c1.4-1.4 3.7-1.4 5.1 0s1.4 3.7 0 5.1l-1.8 1.8-5.1-5.1 1.8-1.8Z" />
-      <path d="m17 5 2-2" />
-      <path d="m20 8 2-2" />
-    </>
-  ),
-  indian: (
-    <>
-      <path d="M5 12h14" />
-      <path d="M7 12h10l-1.2 5.2A3 3 0 0 1 12.9 20h-1.8a3 3 0 0 1-2.9-2.8L7 12Z" />
-      <path d="M8 8c0-1.2 1-1.6 1-2.8" />
-      <path d="M12 8c0-1.2 1-1.6 1-2.8" />
-      <path d="M16 8c0-1.2 1-1.6 1-2.8" />
-    </>
-  ),
-  chinese: (
-    <>
-      <path d="M7 10h10" />
-      <path d="M8 10v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8" />
-      <path d="M9 7c0-1.2 1-1.6 1-2.8" />
-      <path d="M12 7c0-1.2 1-1.6 1-2.8" />
-      <path d="M15 7c0-1.2 1-1.6 1-2.8" />
-    </>
-  ),
-  italian: (
-    <>
-      <path d="M6 16h12" />
-      <path d="M8 16a4 4 0 0 1 8 0" />
-      <path d="M12 9V7" />
-      <path d="M10 7h4" />
-      <path d="M7 20h10" />
-    </>
-  ),
-  dishes: (
-    <>
-      <path d="M4 18h16" />
-      <path d="M6 16a6 6 0 0 1 12 0" />
-      <path d="M12 7V5" />
-      <path d="M10 5h4" />
-    </>
-  )
-};
+// Clean FSSAI Veg / Non-Veg Indian Standard Icons
+const VegIcon = () => (
+  <span className="fssai-symbol veg" title="Vegetarian">
+    <span className="fssai-circle" />
+  </span>
+);
 
-const getCategoryKey = (name = "") => {
-  const value = name.toLowerCase();
-  if (value.includes("veg") && !value.includes("non")) return "veg";
-  if (value.includes("non")) return "non-veg";
-  if (value.includes("chinese")) return "chinese";
-  if (value.includes("indian")) return "indian";
-  if (value.includes("italian")) return "italian";
-  if (value.includes("dish")) return "dishes";
-  return "dishes";
-};
+const NonVegIcon = () => (
+  <span className="fssai-symbol nonveg" title="Non-Vegetarian">
+    <span className="fssai-circle" />
+  </span>
+);
 
-const CategoryIcon = ({ type }) => (
-  <svg className="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {categoryIconPaths[type] || categoryIconPaths.dishes}
-  </svg>
+const DishTag = ({ isVeg }) => (
+  <span className="fssai-badge-wrap">
+    {isVeg ? <VegIcon /> : <NonVegIcon />}
+  </span>
 );
 
 const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="search-svg-icon">
     <circle cx="11" cy="11" r="8" />
     <path d="m21 21-4.35-4.35" />
   </svg>
 );
 
 const BagIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="bag-svg-icon">
     <path d="M6 8h12l-1 12H7L6 8Z" />
     <path d="M9 8a3 3 0 0 1 6 0" />
   </svg>
 );
 
-const ClockIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
+const SlidersIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sliders-svg-icon">
+    <line x1="4" y1="21" x2="4" y2="14" />
+    <line x1="4" y1="10" x2="4" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12" y2="3" />
+    <line x1="20" y1="21" x2="20" y2="16" />
+    <line x1="20" y1="12" x2="20" y2="3" />
+    <line x1="1" y1="14" x2="7" y2="14" />
+    <line x1="9" y1="8" x2="15" y2="8" />
+    <line x1="17" y1="16" x2="23" y2="16" />
   </svg>
 );
 
@@ -124,34 +73,18 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-const StarIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
-
-const OrdersIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-    <rect x="9" y="3" width="6" height="4" rx="1" />
-    <path d="M9 12h6M9 16h4" />
-  </svg>
-);
-
-const DishTag = ({ isVeg }) => (
-  <span className={`dish-type-tag ${isVeg ? "veg" : "nonveg"}`}>{isVeg ? "Veg" : "Non-Veg"}</span>
-);
-
 const CustomerMenuPage = () => {
   const { categories, loading: menuLoading, error: menuError } = useMenu();
   const { customer, setCustomer } = useCustomerAuth();
   const { orders, handlePlaceOrder, loading: orderLoading, reload: reloadOrders, readyNotifications, clearReadyNotification } = useCustomerOrders();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
-  const [dietaryFilter, setDietaryFilter] = useState("all");
+  const [dietaryFilter, setDietaryFilter] = useState("all"); // all, veg, non-veg
+  const [sortBy, setSortBy] = useState("none"); // none, price-asc, price-desc
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [selectedDishForCustomization, setSelectedDishForCustomization] = useState(null);
   const [paymentMode, setPaymentMode] = useState("Online");
@@ -164,7 +97,9 @@ const CustomerMenuPage = () => {
   const [tableNo, setTableNo] = useState(null);
   const [tableError, setTableError] = useState(null);
   const [isResolvingTable, setIsResolvingTable] = useState(true);
+  const [banners, setBanners] = useState(defaultBanners);
 
+  // Table Resolution
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = urlQrToken || params.get("token") || params.get("qr");
@@ -184,19 +119,34 @@ const CustomerMenuPage = () => {
     }
   }, [urlQrToken]);
 
+  // Load Promotional Banners
+  useEffect(() => {
+    getPublicBanners().then((res) => {
+      if (res.success && Array.isArray(res.banners) && res.banners.length > 0) {
+        setBanners(
+          res.banners.map((b) => ({
+            id: b._id || b.id,
+            src: b.image,
+            alt: b.altText || b.title || "Promotional Banner"
+          }))
+        );
+      } else {
+        setBanners(defaultBanners);
+      }
+    });
+  }, []);
+
+  // Category List
   const categoryList = useMemo(() => [
-    { id: "all", name: "All Dishes", count: 0, icon: "all" },
+    { id: "all", name: "All", count: 0 },
     ...categories.map((cat) => ({
       id: String(cat._id),
       name: cat.name,
-      count: cat.items ? cat.items.length : 0,
-      icon: getCategoryKey(cat.name)
+      count: cat.items ? cat.items.length : 0
     }))
   ], [categories]);
 
-  const selectedCategory = categoryList.find((cat) => cat.id === selectedCategoryId);
-  const isAllView = selectedCategoryId === "all";
-
+  // Unify all dishes
   const allItems = useMemo(() => {
     const dishMap = new Map();
     categories.forEach((cat) => {
@@ -209,25 +159,45 @@ const CustomerMenuPage = () => {
     return Array.from(dishMap.values());
   }, [categories]);
 
-  const filteredItems = allItems.filter((item) => {
-    const matchCategory = selectedCategoryId === "all" || String(item.categoryId) === String(selectedCategoryId);
-    const matchDiet = dietaryFilter === "all" || (dietaryFilter === "veg" && item.isVeg) || (dietaryFilter === "non-veg" && !item.isVeg);
-    const query = searchQuery.toLowerCase();
-    const matchSearch = !query || item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query);
-    return matchCategory && matchDiet && matchSearch;
-  });
+  // Filter & Sort Items
+  const filteredItems = useMemo(() => {
+    return allItems
+      .filter((item) => {
+        const matchCategory = selectedCategoryId === "all" || String(item.categoryId) === String(selectedCategoryId);
+        const matchDiet =
+          dietaryFilter === "all" ||
+          (dietaryFilter === "veg" && item.isVeg) ||
+          (dietaryFilter === "non-veg" && !item.isVeg);
+        const query = searchQuery.trim().toLowerCase();
+        const matchSearch =
+          !query ||
+          item.name.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.categoryName?.toLowerCase().includes(query);
+        return matchCategory && matchDiet && matchSearch;
+      })
+      .sort((a, b) => {
+        if (sortBy === "price-asc") return Number(a.price || 0) - Number(b.price || 0);
+        if (sortBy === "price-desc") return Number(b.price || 0) - Number(a.price || 0);
+        return 0;
+      });
+  }, [allItems, selectedCategoryId, dietaryFilter, searchQuery, sortBy]);
 
+  // Bestsellers
   const bestSellerItems = useMemo(() => {
     const marked = allItems.filter((item) => item.isBestseller);
-    return marked.length ? marked : allItems;
+    return marked.length ? marked : allItems.slice(0, 6);
   }, [allItems]);
 
+  // Add To Cart
   const handleAddToCart = (item) => {
     if (!item.isAvailable) return;
     if (item.isCustomized) {
       setCart((prev) => {
         const itemKey = `${item.id}_${item.quantity}_${JSON.stringify(item.selectedAddOns || [])}`;
-        const existingIdx = prev.findIndex((i) => `${i.id}_${i.quantity}_${JSON.stringify(i.selectedAddOns || [])}` === itemKey);
+        const existingIdx = prev.findIndex(
+          (i) => `${i.id}_${i.quantity}_${JSON.stringify(i.selectedAddOns || [])}` === itemKey
+        );
         if (existingIdx > -1) {
           const updated = [...prev];
           updated[existingIdx].count += item.count || 1;
@@ -267,6 +237,7 @@ const CustomerMenuPage = () => {
       itemId: i.id,
       quantity: i.quantity || "Full",
       variantPrice: i.variantPrice || null,
+      selectedAddOns: i.selectedAddOns || [],
       count: i.count || 1
     }));
     const res = await handlePlaceOrder({ tableNo, items: orderItems, paymentMode });
@@ -285,14 +256,15 @@ const CustomerMenuPage = () => {
     }
   };
 
-  const loadRazorpayScript = () => new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
+      if (window.Razorpay) return resolve(true);
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
 
   const openRazorpayModal = async (razorpayData, orderData) => {
     await loadRazorpayScript();
@@ -300,7 +272,7 @@ const CustomerMenuPage = () => {
       key: razorpayData.razorpayKeyId || "rzp_test_mock",
       amount: razorpayData.amount,
       currency: razorpayData.currency || "INR",
-      name: "Restro Dine-In",
+      name: "Reztro Dine-In",
       description: `Order #${orderData.orderId} Payment`,
       order_id: razorpayData.razorpayOrderId,
       handler: async function (response) {
@@ -346,52 +318,49 @@ const CustomerMenuPage = () => {
   const totalCartCount = cart.reduce((sum, i) => sum + i.count, 0);
   const totalCartPrice = cart.reduce((sum, i) => {
     const unitPrice = i.variantPrice !== null && i.variantPrice !== undefined ? Number(i.variantPrice) : Number(i.price || 0);
-    return sum + (unitPrice * (i.quantity === "Half" ? 0.5 : 1)) * i.count;
+    const addOnsTotal = Array.isArray(i.selectedAddOns)
+      ? i.selectedAddOns.reduce((aSum, a) => aSum + Number(a.price || 0), 0)
+      : 0;
+    return sum + ((unitPrice * (i.quantity === "Half" ? 0.5 : 1)) + addOnsTotal) * i.count;
   }, 0);
 
-  const renderAddControl = (dish, compact = false) => {
+  // Render Add or Stepper Control
+  const renderAddControl = (dish) => {
     const inCart = cart.find((i) => i.id === dish.id);
     if (!dish.isAvailable) return <span className="sold-out-badge">Sold Out</span>;
     if (inCart) {
       return (
-        <div className={`stepper-pill ${compact ? "compact" : ""}`} onClick={(e) => e.stopPropagation()}>
-          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count - 1)} aria-label={`Remove one ${dish.name}`}>-</button>
+        <div className="card-stepper-pill" onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count - 1)} aria-label={`Remove one ${dish.name}`}>
+            -
+          </button>
           <span>{inCart.count}</span>
-          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count + 1)} aria-label={`Add one ${dish.name}`}>+</button>
+          <button type="button" onClick={() => handleUpdateQuantity(dish.id, inCart.count + 1)} aria-label={`Add one ${dish.name}`}>
+            +
+          </button>
         </div>
       );
     }
     return (
-      <button type="button" className={`btn-add-action ${compact ? "compact" : ""}`} onClick={(e) => { e.stopPropagation(); handleAddToCart(dish); }}>
+      <button
+        type="button"
+        className="btn-card-add"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleAddToCart(dish);
+        }}
+      >
         + Add
       </button>
     );
   };
 
-  const handleDishFilterClick = (filter) => {
-    if (filter.type === "diet") {
-      setDietaryFilter(filter.id);
-      return;
-    }
-    setSelectedCategoryId(filter.id);
-    setDietaryFilter("all");
-  };
-
-  const allDishFilters = [
-    { id: "all", label: "All Dishes", type: "category" },
-    { id: "veg", label: "Veg", type: "diet" },
-    { id: "non-veg", label: "Non-Veg", type: "diet" },
-    ...categoryList.filter((cat) => cat.id !== "all").map((cat) => ({
-      id: cat.id,
-      label: cat.name,
-      type: "category"
-    }))
-  ];
+  const isFilterActive = sortBy !== "none" || dietaryFilter !== "all";
 
   if (isResolvingTable) {
     return (
-      <div className="customer-menu-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div className="mobile-loading-state" style={{ color: 'var(--color-primary)', fontWeight: '700', fontSize: '18px' }}>
+      <div className="customer-menu-page page-centered-loading">
+        <div className="mobile-loading-state">
           Resolving Table...
         </div>
       </div>
@@ -403,168 +372,141 @@ const CustomerMenuPage = () => {
   }
 
   return (
-    <div className="customer-menu-page">
-      <header className="customer-menu-header">
-        <div className="customer-brand">
-          <div className="brand-dot-logo"><ClockIcon /></div>
-          <div>
-            <h1 className="mobile-brand-title">Restro</h1>
-            <span className="mobile-table-tag">Table {tableNo}</span>
+    <div className="customer-menu-container">
+      {/* ── 1. Compact Modern Header ── */}
+      <header className="zomato-header">
+        <div className="zomato-header-inner">
+          <div className="header-brand-column">
+            <h1 className="header-restaurant-title">Reztro</h1>
+            <span className="header-table-badge">Table {tableNo}</span>
           </div>
-        </div>
-        <div className="mobile-header-actions">
-          <button type="button" className="btn-review-pill" onClick={() => setShowReviewModal(true)} aria-label="Leave a review">
-            <StarIcon />
-            <span className="btn-label-text">Review</span>
-          </button>
-          <button type="button" className="btn-orders-pill" onClick={() => { reloadOrders(); setShowOrdersModal(true); }} aria-label="My Orders">
-            <OrdersIcon />
-            <span className="btn-label-text">My Orders</span>
-            {orders.length > 0 && <span className="pill-badge">{orders.length}</span>}
-          </button>
-          <button type="button" className="btn-cart-pill" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
+
+          {/* Compact Search Bar */}
+          <div className="header-search-wrap">
+            <SearchIcon />
+            <input
+              type="text"
+              placeholder="Search for dishes"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="header-search-input"
+            />
+            {searchQuery && (
+              <button type="button" className="btn-search-clear" onClick={() => setSearchQuery("")}>
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Cart Icon Button */}
+          <button
+            type="button"
+            className="header-cart-btn"
+            onClick={() => setIsCartOpen(true)}
+            aria-label="View Cart"
+          >
             <BagIcon />
-            {totalCartCount > 0 && <span className="pill-badge primary">{totalCartCount}</span>}
+            {totalCartCount > 0 && <span className="cart-badge-dot">{totalCartCount}</span>}
           </button>
         </div>
       </header>
 
+      {/* Floating Status & Notifications */}
       {orderSuccessMsg && (
         <div className="mobile-success-toast" role="status" aria-live="polite">
           <span>{orderSuccessMsg}</span>
-          <button type="button" onClick={() => setOrderSuccessMsg(null)} aria-label="Dismiss success message">x</button>
+          <button type="button" onClick={() => setOrderSuccessMsg(null)} aria-label="Dismiss">✕</button>
         </div>
       )}
       {readyNotifications.map((orderId) => (
         <div key={orderId} className="mobile-success-toast order-ready-toast" role="status" aria-live="polite">
           <span>🍽️ Your order #{orderId} is Ready! Please collect it.</span>
-          <button type="button" onClick={() => clearReadyNotification(orderId)} aria-label="Dismiss message">x</button>
+          <button type="button" onClick={() => clearReadyNotification(orderId)} aria-label="Dismiss">✕</button>
         </div>
       ))}
-      {(actionError || menuError || tableError) && <div className="mobile-error-toast" role="alert">{tableError || actionError || menuError}</div>}
+      {(actionError || menuError || tableError) && (
+        <div className="mobile-error-toast" role="alert">{tableError || actionError || menuError}</div>
+      )}
 
-      <div className="customer-menu-layout">
-        <aside className="customer-category-rail shared-sidebar" aria-label="Menu categories">
-          <div className="rail-category-list">
-            {categoryList.map((cat) => (
-              <button key={cat.id} type="button" className={`rail-category-btn ${selectedCategoryId === cat.id ? "active" : ""}`} onClick={() => { setSelectedCategoryId(cat.id); setDietaryFilter("all"); }}>
-                <CategoryIcon type={cat.icon} />
-                <span>{cat.id === "all" ? "All Dishes" : cat.name}</span>
-              </button>
-            ))}
-          </div>
-          {/* <div className="rail-promo-card" aria-hidden="true">
-            <CategoryIcon type="indian" />
-            <strong>Great food<br /><span>Great mood!</span></strong>
-            <i />
-            <p>Enjoy your meal with Restro Digital.</p>
-          </div> */}
-        </aside>
+      <main className="customer-content-flow">
+        {/* ── 2. Promotional Food Banner ── */}
+        <section className="promo-banner-section">
+          <Carousel
+            items={banners}
+            autoPlay={true}
+            autoPlayInterval={3500}
+            showDots={true}
+            showArrows={false}
+            itemsPerView={1}
+            className="promo-carousel"
+          />
+        </section>
 
-        <main className="customer-menu-main">
-          <section className="top-controls-row" aria-label="Search">
-            <label className="mobile-search-box">
-              <SearchIcon />
-              <span className="sr-only">Search dishes</span>
-              <input type="text" placeholder="Search for dishes, cuisines..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            </label>
-          </section>
+        {/* ── 3. Category & Filter Chips (Single Horizontal Scrolling Row) ── */}
+        <section className="category-chips-bar" aria-label="Filter and Categories">
+          <div className="chips-horizontal-scroll">
+            {/* Filters Button (1st Chip) */}
+            <button
+              type="button"
+              className={`chip-pill filter-trigger-chip ${isFilterActive ? "active-filter" : ""}`}
+              onClick={() => setIsFilterModalOpen(true)}
+            >
+              <SlidersIcon />
+              <span>filters</span>
+              {isFilterActive && <span className="active-dot" />}
+            </button>
 
-          <nav className="mobile-category-tiles" aria-label="Quick categories">
-            {categoryList.slice(0, 5).map((cat) => (
-              <button key={cat.id} type="button" className={`mobile-category-tile ${selectedCategoryId === cat.id ? "active" : ""}`} onClick={() => { setSelectedCategoryId(cat.id); setDietaryFilter("all"); }}>
-                <CategoryIcon type={cat.icon} />
-                <span>{cat.id === "all" ? "All" : cat.name}</span>
-              </button>
-            ))}
-          </nav>
-
-          {isAllView && (
-            <section className="customer-hero-panel">
-              <Carousel
-                items={bannerImages}
-                autoPlay={true}
-                autoPlayInterval={3500}
-                showDots={true}
-                showArrows={false}
-                itemsPerView={1}
-                className="banner-carousel"
-              />
-            </section>
-          )}
-
-          {isAllView && (
-            <section className="bestseller-section">
-              <div className="section-title-row">
-                <h2>BestSeller Items</h2>
-              </div>
-              {menuLoading ? (
-                <div className="mobile-loading-state">Loading delicious menu...</div>
-              ) : (
-                <Carousel
-                  items={bestSellerItems}
-                  autoPlay={false}
-                  showDots={true}
-                  showArrows={false}
-                  itemsPerView={{ mobile: 1.15, tablet: 2.2, desktop: 3.5 }}
-                  className="bestseller-carousel"
-                  gap={16}
-                  renderItem={(dish) => (
-                    <article key={dish.id} className={`bestseller-card ${!dish.isAvailable ? 'sold-out' : ''}`} onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}>
-                      <div className="bestseller-image-wrap">
-                        {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
-                        <DishTag isVeg={dish.isVeg} />
-                      </div>
-                      <div className="bestseller-card-body">
-                        <h3>{dish.name}</h3>
-                        <p>{dish.description || "Delicately prepared with fresh ingredients."}</p>
-                        <div className="dish-card-footer">
-                          <strong>${Number(dish.price || 0).toFixed(2)}</strong>
-                          {renderAddControl(dish, true)}
-                        </div>
-                      </div>
-                    </article>
-                  )}
-                />
-              )}
-            </section>
-          )}
-
-          <section className="all-dishes-section">
-            <div className="all-dishes-head">
-              <div className="dish-filter-pills">
-                {allDishFilters.map((filter) => (
+            {/* Dynamic Category Chips */}
+            {categoryList
+              .filter((cat) => cat.id !== "all")
+              .map((cat) => {
+                const isActive = selectedCategoryId === cat.id;
+                return (
                   <button
-                    key={`${filter.type}-${filter.id}`}
+                    key={cat.id}
                     type="button"
-                    className={`diet-switch-pill ${(filter.type === "diet" ? dietaryFilter === filter.id : selectedCategoryId === filter.id) ? "active" : ""}`}
-                    onClick={() => handleDishFilterClick(filter)}
+                    className={`chip-pill ${isActive ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedCategoryId(isActive ? "all" : cat.id);
+                    }}
                   >
-                    {filter.label}
+                    <span>{cat.name.toLowerCase()}</span>
                   </button>
-                ))}
-              </div>
-            </div>
+                );
+              })}
+          </div>
+        </section>
 
+        {/* ── 4. Bestseller Items Section ── */}
+        {selectedCategoryId === "all" && !searchQuery && (
+          <section className="bestsellers-container">
+            <h2 className="section-heading">Bestseller Items</h2>
             {menuLoading ? (
-              <div className="mobile-loading-state">Loading delicious menu...</div>
-            ) : filteredItems.length === 0 ? (
-              <div className="mobile-empty-state">No dishes match your selected filter</div>
+              <div className="menu-loading-text">Loading bestsellers...</div>
             ) : (
-              <div className="all-dishes-list">
-                {filteredItems.map((dish) => (
-                  <article key={dish.id} className={`swiggy-mobile-dish-card ${!dish.isAvailable ? 'sold-out' : ''}`} onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}>
-                    <div className="dish-card-image-col">
-                      {dish.image ? <img src={dish.image} alt={dish.name} loading="lazy" /> : <div className="dish-placeholder-icon"><CategoryIcon type="dishes" /></div>}
+              <div className="bestsellers-scroll-row">
+                {bestSellerItems.map((dish) => (
+                  <article
+                    key={dish.id}
+                    className={`bestseller-item-card ${!dish.isAvailable ? "is-sold-out" : ""}`}
+                    onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}
+                  >
+                    <div className="bestseller-img-wrap">
+                      <img
+                        src={dish.image || dish.imageUrl || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80"}
+                        alt={dish.name}
+                        loading="lazy"
+                      />
                       <DishTag isVeg={dish.isVeg} />
                     </div>
-                    <div className="dish-card-left">
-                      <h3 className="dish-card-title">{dish.name}</h3>
-                      <p className="dish-desc-snippet">{dish.description || "Delicately prepared with fresh ingredients."}</p>
-                      <div className="dish-card-footer">
-                        <strong className="dish-price-text">${Number(dish.price || 0).toFixed(2)}</strong>
-                        {dish.discountPrice > 0 && <span className="dish-orig-price">${Number(dish.discountPrice).toFixed(2)}</span>}
-                        {renderAddControl(dish, true)}
+                    <div className="bestseller-card-info">
+                      <h3 className="bestseller-dish-title">{dish.name}</h3>
+                      <p className="bestseller-dish-desc">
+                        {dish.description || "Delicately prepared with fresh ingredients."}
+                      </p>
+                      <div className="bestseller-card-footer">
+                        <strong className="bestseller-price">₹{Number(dish.price || 0).toFixed(2)}</strong>
+                        {renderAddControl(dish)}
                       </div>
                     </div>
                   </article>
@@ -572,23 +514,117 @@ const CustomerMenuPage = () => {
               </div>
             )}
           </section>
-        </main>
-      </div>
+        )}
 
+        {/* ── 5. Main Food Item Cards (Matching Target Noodles Card Style) ── */}
+        <section className="main-dishes-section">
+          {selectedCategoryId !== "all" && (
+            <h2 className="section-heading">
+              {categoryList.find((c) => c.id === selectedCategoryId)?.name || "Dishes"}
+            </h2>
+          )}
+
+          {menuLoading ? (
+            <div className="menu-loading-text">Loading delicious menu...</div>
+          ) : filteredItems.length === 0 ? (
+            <div className="empty-dishes-box">
+              <p>No dishes match your selected filter or search.</p>
+              <button
+                type="button"
+                className="btn-clear-filter-state"
+                onClick={() => {
+                  setSelectedCategoryId("all");
+                  setDietaryFilter("all");
+                  setSortBy("none");
+                  setSearchQuery("");
+                }}
+              >
+                Reset All Filters
+              </button>
+            </div>
+          ) : (
+            <div className="noodles-food-cards-list">
+              {filteredItems.map((dish) => (
+                <article
+                  key={dish.id}
+                  className={`noodles-dish-card ${!dish.isAvailable ? "is-sold-out" : ""}`}
+                  onClick={() => dish.isAvailable && setSelectedDishForCustomization(dish)}
+                >
+                  {/* Left: Large Food Image with Veg/Non-Veg Tag */}
+                  <div className="dish-left-col">
+                    <img
+                      src={dish.image || dish.imageUrl || "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80"}
+                      alt={dish.name}
+                      loading="lazy"
+                    />
+                    <DishTag isVeg={dish.isVeg} />
+                  </div>
+
+                  {/* Right: Details + Price + Add Button */}
+                  <div className="dish-right-col">
+                    <div className="dish-text-block">
+                      <h3 className="noodles-dish-name">{dish.name}</h3>
+                      <p className="noodles-dish-desc">
+                        {dish.description || "Delicately prepared with fresh ingredients."}
+                      </p>
+                    </div>
+                    <div className="noodles-dish-footer">
+                      <strong className="noodles-dish-price">₹{Number(dish.price || 0).toFixed(2)}</strong>
+                      {renderAddControl(dish)}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+
+      {/* ── 6. Floating Mobile Cart Bar ── */}
       {totalCartCount > 0 && (
-        <div className="floating-mobile-cart-bar">
-          <div className="cart-mini-icon"><BagIcon /><span>{totalCartCount}</span></div>
-          <span className="floating-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
-          <span className="floating-divider" />
-          <span className="floating-subtotal">Subtotal</span>
-          <strong className="floating-cart-total">${totalCartPrice.toFixed(2)}</strong>
-          <button type="button" className="floating-cart-btn" onClick={() => setIsCartOpen(true)}>
-            View Cart <ArrowRightIcon />
+        <div className="floating-cart-footer-bar">
+          <div className="floating-cart-info">
+            <div className="floating-cart-icon-wrap">
+              <BagIcon />
+              <span className="cart-count-pill">{totalCartCount}</span>
+            </div>
+            <div className="floating-cart-labels">
+              <span className="floating-cart-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
+              <strong className="floating-cart-total-price">₹{totalCartPrice.toFixed(2)}</strong>
+            </div>
+          </div>
+          <button type="button" className="btn-floating-view-cart" onClick={() => setIsCartOpen(true)}>
+            <span>View Cart</span>
+            <ArrowRightIcon />
           </button>
         </div>
       )}
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cartItems={cart} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} tableNo={tableNo} paymentMode={paymentMode} onPaymentModeChange={setPaymentMode} onPlaceOrder={handleConfirmOrder} isSubmitting={isSubmitting} />
+      {/* ── Modals & Drawers ── */}
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        currentSort={sortBy}
+        currentDiet={dietaryFilter}
+        onApply={({ sort, diet }) => {
+          setSortBy(sort);
+          setDietaryFilter(diet);
+        }}
+      />
+
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        tableNo={tableNo}
+        paymentMode={paymentMode}
+        onPaymentModeChange={setPaymentMode}
+        onPlaceOrder={handleConfirmOrder}
+        isSubmitting={isSubmitting}
+      />
+
       {showOtpModal && <OtpModal onSuccess={onOtpVerified} onClose={() => setShowOtpModal(false)} />}
       <MyOrdersModal isOpen={showOrdersModal} onClose={() => setShowOrdersModal(false)} orders={orders} loading={orderLoading} onRefresh={reloadOrders} />
       <DishDetailModal isOpen={!!selectedDishForCustomization} onClose={() => setSelectedDishForCustomization(null)} dish={selectedDishForCustomization} onAddToCart={handleAddToCart} />

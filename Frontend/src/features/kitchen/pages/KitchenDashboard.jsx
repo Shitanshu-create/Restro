@@ -157,7 +157,7 @@ const KitchenDashboard = () => {
                     <span className={`k-pay-badge ${order.paymentStatus === "Paid" ? "paid" : "pending"}`}>
                       {order.paymentStatus === "Paid" ? "Paid" : "Pay at Counter"}
                     </span>
-                    <span className="k-amount-tag">${order.total.toFixed(2)}</span>
+                    <span className="k-amount-tag">₹{order.total.toFixed(2)}</span>
                   </div>
                   <div className="k-card-action-bar">
                     {order.status === "Preparing" && (

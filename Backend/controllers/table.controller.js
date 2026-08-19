@@ -210,7 +210,18 @@ async function getAllOrdersController(req, res, next) {
     try {
         const { OrderModel } = await import("../models/order.model.js");
         const { CustomerModel } = await import("../models/customers.model.js");
-        const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+        const isHistoryView = req.query.history === "true" || req.query.all === "true";
+        const rawOrders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+
+        const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+        const orders = isHistoryView
+            ? rawOrders
+            : rawOrders.filter((o) => {
+                if (o.orderStatus !== "Ready") return true;
+                const completedTime = o.readyAt || o.updatedAt || o.createdAt;
+                return completedTime && new Date(completedTime) >= fifteenMinsAgo;
+            });
 
         const customerIds = [...new Set(orders.map(o => o.customerId).filter(Boolean))];
         const customers = await CustomerModel.find({ customerId: { $in: customerIds } }, "customerId name").lean();
@@ -231,9 +242,11 @@ async function getAllOrdersController(req, res, next) {
                 paymentMode: order.paymentMode,
                 paidBy: order.paidBy || null,
                 paidAt: order.paidAt || null,
+                readyAt: order.readyAt || null,
                 razorpayOrderId: order.razorpayOrderId || null,
                 razorpayPaymentId: order.razorpayPaymentId || null,
-                createdAt: order.createdAt
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt
             }))
         });
     } catch (error) {
