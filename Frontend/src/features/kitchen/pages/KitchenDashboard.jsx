@@ -1,197 +1,251 @@
-import React, { useState } from "react";
-import SharedSidebar from "../../../components/SharedSidebar.jsx";
+import React, { useState, useMemo } from "react";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
 import { useKitchen } from "../hooks/useKitchen.js";
+import { useAuth } from "../../auth/hooks/useAuth.js";
 import "../styles/KitchenDashboard.css";
+
 const KitchenDashboard = () => {
   const { allOrders, loading, error, handleMarkReady, handleMarkPaid, reload } = useKitchen();
+  const { handleLogout } = useAuth();
+
+  const [activeTab, setActiveTab] = useState("incomplete"); // "incomplete" or "completed"
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const formattedOrders = allOrders.map((o) => {
-    const itemsList = Array.isArray(o.items) ? o.items : [];
-    const itemSummary = itemsList.length > 0
-      ? itemsList.map((i) => `${i.name || i.itemId}${i.count ? ` x${i.count}` : ""}`).join(", ")
-      : String(o.items || "");
-    return {
-      id: o.orderId,
-      tableNo: o.tableNo,
-      customer: `Cust #${o.customerId || "N/A"}`,
-      items: itemSummary || "Food Items",
-      itemsList,
-      total: Number(o.amount || 0),
-      time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
-      status: o.orderStatus || "Preparing",
-      paymentStatus: o.paymentStatus || "Pending",
-      paymentMode: o.paymentMode || "Cash",
-      paidBy: o.paidBy,
-      paidAt: o.paidAt
-    };
-  });
+  const [acceptedOrderIds, setAcceptedOrderIds] = useState(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Format order data
+  const formattedOrders = useMemo(() => {
+    return allOrders.map((o) => {
+      const itemsList = Array.isArray(o.items)
+        ? o.items
+        : Array.isArray(o.itemsList)
+          ? o.itemsList
+          : [];
+
+      // Extract raw table number e.g. "T-01" -> "t-01"
+      const rawTable = String(o.tableNo || "").trim();
+      const formattedTable = rawTable
+        ? rawTable.toLowerCase().startsWith("t-")
+          ? rawTable.toLowerCase()
+          : `t-${rawTable.toLowerCase().replace(/^t/, "")}`
+        : "t-01";
+
+      const formattedTime = o.createdAt
+        ? new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : "13:17 PM";
+
+      return {
+        id: o.orderId || o.id,
+        tableNo: formattedTable,
+        orderNumber: o.orderId || o.id || "xxxx",
+        customer: o.customerId ? `Cust #${o.customerId}` : "Customer",
+        itemsList,
+        total: Number(o.amount || o.total || 0),
+        time: formattedTime,
+        status: o.orderStatus || o.status || "Preparing",
+        paymentStatus: o.paymentStatus || "Pending",
+        paymentMode: o.paymentMode || "Cash",
+        paidBy: o.paidBy,
+        paidAt: o.paidAt
+      };
+    });
+  }, [allOrders]);
+
+  // Tab Filtering: Incomplete vs Completed
+  const displayedOrders = useMemo(() => {
+    if (activeTab === "completed") {
+      return formattedOrders.filter((o) => o.status === "Ready");
+    }
+    // "incomplete" includes Preparing & any unready orders
+    return formattedOrders.filter((o) => o.status !== "Ready");
+  }, [formattedOrders, activeTab]);
+
+  const handleRefreshClick = async () => {
+    setIsRefreshing(true);
+    await reload();
+    setTimeout(() => setIsRefreshing(false), 400);
+  };
+
+  const handleAcceptOrder = (e, orderId) => {
+    e.stopPropagation();
+    setAcceptedOrderIds((prev) => new Set(prev).add(orderId));
+  };
+
+  const handleMarkOrderReady = async (e, orderId) => {
+    e.stopPropagation();
+    await handleMarkReady(orderId);
+    setAcceptedOrderIds((prev) => {
+      const next = new Set(prev);
+      next.delete(orderId);
+      return next;
+    });
+    setSelectedOrder(null);
+  };
+
   const handleUpdateStatus = async (orderId, newStatus) => {
     if (newStatus === "Ready") {
       await handleMarkReady(orderId);
     }
     setSelectedOrder(null);
   };
+
   const handleMarkAsPaid = async (orderId) => {
     await handleMarkPaid(orderId);
     setSelectedOrder(null);
   };
-  const filteredOrders = formattedOrders.filter((o) => {
-    if (statusFilter === "All") return true;
-    return o.status.toLowerCase() === statusFilter.toLowerCase();
-  });
-  const preparingCount = formattedOrders.filter((o) => o.status === "Preparing").length;
-  const readyCount = formattedOrders.filter((o) => o.status === "Ready").length;
+
+  // Helper to format item display name e.g. "french fries (small)"
+  const getItemDisplayLabel = (item) => {
+    const name = (item.name || item.itemId || "Dish").toLowerCase();
+    const qty = item.quantity && item.quantity !== "Full" ? ` (${item.quantity.toLowerCase()})` : "";
+    return `${name}${qty}`;
+  };
+
   return (
-    <div className="kitchen-shell">
-      <SharedSidebar
-        activePage="orders"
-        onPageChange={() => {}}
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
-        mode="kitchen"
-      />
+    <div className="kds-app-container">
+      {/* ── Top Controls Bar ── */}
+      <header className="kds-top-bar">
+        <div className="kds-left-controls">
+          {/* Incomplete Tab */}
+          <button
+            type="button"
+            className={`kds-tab-pill ${activeTab === "incomplete" ? "active" : ""}`}
+            onClick={() => setActiveTab("incomplete")}
+          >
+            Incomplete
+          </button>
 
+          {/* Completed Tab */}
+          <button
+            type="button"
+            className={`kds-tab-pill ${activeTab === "completed" ? "active" : ""}`}
+            onClick={() => setActiveTab("completed")}
+          >
+            completed
+          </button>
 
-      <div className="kitchen-content-area">
-        {/* Top Kitchen Header */}
-        <header className="kitchen-header">
-          <div className="kitchen-title-group">
-            <button
-              className="kitchen-hamburger-btn"
-              onClick={() => setMobileSidebarOpen((prev) => !prev)}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
-            <div>
-              <h1 className="kitchen-page-title">Kitchen Display Station (KDS)</h1>
-              <p className="kitchen-page-sub">Live Order Queue & Preparation Control</p>
-            </div>
+          {/* Refresh Button */}
+          <button
+            type="button"
+            className={`kds-icon-btn kds-refresh-btn ${isRefreshing ? "spinning" : ""}`}
+            onClick={handleRefreshClick}
+            title="Refresh Orders"
+            aria-label="Refresh Orders"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Right Logout Button */}
+        <div className="kds-right-controls">
+          <button
+            type="button"
+            className="kds-logout-btn"
+            onClick={handleLogout}
+            title="Logout from KDS"
+          >
+            <span>Logout</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {error && <div className="kds-error-banner" role="alert">{error}</div>}
+
+      {/* ── Main KDS Orders Grid ── */}
+      <main className="kds-content-body">
+        {loading ? (
+          <div className="kds-empty-state">
+            <div className="kds-loading-spinner" />
+            <p>Loading live kitchen orders...</p>
           </div>
-
-
-          <div className="kitchen-header-badges" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              onClick={reload}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "6px 12px",
-                borderRadius: "8px",
-                border: "1px solid var(--color-border, #cbd5e1)",
-                background: "var(--color-bg-card, #ffffff)",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "var(--color-text-title, #0f172a)",
-                cursor: "pointer"
-              }}
-            >
-              🔄 Refresh
-            </button>
-            <span className="live-pulse-badge">
-              <span className="pulse-dot" /> Live Polling Active
-            </span>
+        ) : displayedOrders.length === 0 ? (
+          <div className="kds-empty-state">
+            <p>No {activeTab} orders at the moment.</p>
           </div>
-        </header>
+        ) : (
+          <div className="kds-orders-grid">
+            {displayedOrders.map((order) => {
+              const isAccepted = acceptedOrderIds.has(order.id);
+              const isReady = order.status === "Ready";
 
-
-        {error && <div className="login-error" role="alert" style={{ margin: "16px auto", maxWidth: "1200px" }}>{error}</div>}
-        <main className="kitchen-main-body">
-          {/* Summary Stat Cards */}
-          <div className="kitchen-summary-grid">
-            <div className="k-stat-card stat-prep">
-              <span className="k-stat-label">Preparing Now</span>
-              <span className="k-stat-value">{preparingCount}</span>
-            </div>
-            <div className="k-stat-card stat-ready">
-              <span className="k-stat-label">Ready for Service</span>
-              <span className="k-stat-value">{readyCount}</span>
-            </div>
-            <div className="k-stat-card stat-speed">
-              <span className="k-stat-label">Total Active Queue</span>
-              <span className="k-stat-value">{formattedOrders.length}</span>
-            </div>
-          </div>
-          {/* Filter Tabs */}
-          <div className="kitchen-filter-tabs">
-            {["All", "Preparing", "Ready"].map((tab) => (
-              <button
-                key={tab}
-                className={`k-tab-btn ${statusFilter === tab ? "active" : ""}`}
-                onClick={() => setStatusFilter(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          {/* Kitchen Orders Cards Grid */}
-          {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>Loading live kitchen queue...</div>
-          ) : filteredOrders.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-body)" }}>No kitchen orders in queue.</div>
-          ) : (
-            <div className="kitchen-orders-grid">
-              {filteredOrders.map((order) => (
-                <div
+              return (
+                <article
                   key={order.id}
-                  className={`k-order-card k-card-${order.status.toLowerCase()}`}
+                  className="kds-order-card"
                   onClick={() => setSelectedOrder(order)}
                 >
-                  <div className="k-card-top-bar">
-                    <span className="k-table-tag">{order.tableNo}</span>
-                    <span className="k-time-tag">⏱ {order.time}</span>
+                  {/* Top Row: Table Number & Time */}
+                  <div className="kds-card-header">
+                    <span className="kds-table-title">{order.tableNo}</span>
+                    <span className="kds-order-time">{order.time}</span>
                   </div>
-                  <div className="k-card-mid-info">
-                    <span className="k-order-num">Order #{order.id}</span>
-                    <span className="k-customer-name">{order.customer}</span>
-                    <p className="k-items-text">{order.items}</p>
+
+                  {/* Order Number */}
+                  <div className="kds-order-sub">
+                    Order #{order.orderNumber}
                   </div>
-                  <div className="k-card-meta-row">
-                    <span className={`k-pay-badge ${order.paymentStatus === "Paid" ? "paid" : "pending"}`}>
-                      {order.paymentStatus === "Paid" ? "Paid" : "Pay at Counter"}
-                    </span>
-                    <span className="k-amount-tag">₹{order.total.toFixed(2)}</span>
-                  </div>
-                  <div className="k-card-action-bar">
-                    {order.status === "Preparing" && (
-                      <button
-                        className="k-act-btn btn-ready"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleUpdateStatus(order.id, "Ready");
-                        }}
-                      >
-                        Mark Ready ✓
-                      </button>
-                    )}
-                    {order.status === "Ready" && (
-                      <button
-                        className="k-act-btn btn-details"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrder(order);
-                        }}
-                      >
-                        View Order Details
-                      </button>
+
+                  {/* Main Content: Food Ordered + Quantity */}
+                  <div className="kds-items-list">
+                    {order.itemsList.length > 0 ? (
+                      order.itemsList.map((item, idx) => (
+                        <div key={idx} className="kds-item-row">
+                          <span className="kds-item-name">
+                            {getItemDisplayLabel(item)}
+                          </span>
+                          <span className="kds-item-qty">
+                            x{item.count || 1}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="kds-item-row">
+                        <span className="kds-item-name">food items</span>
+                        <span className="kds-item-qty">x1</span>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
 
+                  {/* Bottom Row: Action Button */}
+                  <div className="kds-card-footer">
+                    {isReady ? (
+                      <span className="kds-ready-badge">
+                        Ready ✓
+                      </span>
+                    ) : isAccepted ? (
+                      <button
+                        type="button"
+                        className="kds-action-btn btn-mark-ready"
+                        onClick={(e) => handleMarkOrderReady(e, order.id)}
+                      >
+                        Mark Ready
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="kds-action-btn btn-accept"
+                        onClick={(e) => handleAcceptOrder(e, order.id)}
+                      >
+                        Accept
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </main>
 
-      </div>
-      {/* Order Detail Modal */}
+      {/* Order Detail Modal (for reviewing extra details or settlement) */}
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
@@ -203,4 +257,5 @@ const KitchenDashboard = () => {
     </div>
   );
 };
+
 export default KitchenDashboard;

@@ -1,282 +1,310 @@
+/* ── Reztro Kitchen Display Station (KDS) Modern UI ── */
 @import "../../../styles/globals.css";
 
-
-.kitchen-shell {
-  display: flex;
+/* Base Shell Container */
+.kds-app-container {
   min-height: 100vh;
-  background-color: var(--color-background);
-}
-
-.kitchen-content-area {
-  flex: 1;
+  background-color: #f3f4f6;
+  color: #0f172a;
   display: flex;
   flex-direction: column;
-  margin-left: var(--layout-sidebar-width);
-  min-width: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-.kitchen-header {
+
+/* ── Top Controls Bar ── */
+.kds-top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 32px;
-  background-color: var(--color-card-background);
-  border-bottom: 1px solid var(--color-border);
+  padding: 16px 32px;
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.kitchen-title-group {
+.kds-left-controls {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.kitchen-hamburger-btn {
-  display: none;
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
-}
-.kitchen-page-title {
-  font-size: var(--font-size-title);
-  font-weight: 800;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
-}
-.kitchen-page-sub {
-  font-size: var(--font-size-small);
-  color: var(--color-text-secondary);
-  margin-top: 2px;
-}
-.live-pulse-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-  font-size: var(--font-size-small);
+.kds-tab-pill {
+  padding: 10px 28px;
+  border-radius: 9999px;
+  font-size: 15px;
   font-weight: 700;
-}
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background-color: var(--color-success);
-  animation: pulseAnim 1.6s infinite ease-in-out;
-}
-@keyframes pulseAnim {
-  0% { transform: scale(0.9); opacity: 0.7; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.7; }
-}
-/* Main Body */
-.kitchen-main-body {
-  padding: 24px 32px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 1440px;
-  margin: 0 auto;
-  width: 100%;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: capitalize;
 }
 
-.kitchen-summary-grid {
+.kds-tab-pill:hover {
+  color: #0f172a;
+}
+
+.kds-tab-pill.active {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.kds-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.15s ease;
+}
+
+.kds-icon-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.kds-refresh-btn.spinning svg {
+  animation: kdsSpin 0.5s linear infinite;
+}
+
+@keyframes kdsSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.kds-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kds-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 24px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.15s ease;
+}
+
+.kds-logout-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.kds-error-banner {
+  background: #fef2f2;
+  border-bottom: 1px solid #fee2e2;
+  padding: 12px 32px;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ── Main Content Body ── */
+.kds-content-body {
+  flex: 1;
+  padding: 24px 32px 40px;
+}
+
+/* ── KDS Orders Grid ── */
+.kds-orders-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.k-stat-card {
-  background-color: var(--color-card-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.k-stat-label {
-  font-size: var(--font-size-small);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.k-stat-value {
-  font-size: var(--font-size-stat-number);
-  font-weight: 800;
-  color: var(--color-text-primary);
-}
-
-.stat-incoming .k-stat-value { color: var(--color-warning); }
-.stat-prep .k-stat-value { color: var(--color-info); }
-.stat-ready .k-stat-value { color: var(--color-success); }
-.stat-speed .k-stat-value { color: var(--color-text-primary); }
-
-.kitchen-filter-tabs {
-  display: flex;
-  gap: 6px;
-}
-
-
-.k-tab-btn {
-  padding: 8px 20px;
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-body);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  background-color: var(--color-card-background);
-  border: 1px solid var(--color-border);
-  transition: var(--transition-smooth);
-}
-
-.k-tab-btn:hover {
-  background-color: var(--color-background);
-}
-
-.k-tab-btn.active {
-  background-color: var(--color-text-primary);
-  color: var(--color-text-white);
-  border-color: var(--color-text-primary);
-}
-
-/* Orders Cards Grid */
-.kitchen-orders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
 }
 
-.k-order-card {
-  background-color: var(--color-card-background);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+@media (max-width: 1440px) {
+  .kds-orders-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .kds-orders-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .kds-top-bar {
+    padding: 14px 20px;
+  }
+  .kds-content-body {
+    padding: 20px 20px 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .kds-orders-grid {
+    grid-template-columns: 1fr;
+  }
+  .kds-top-bar {
+    padding: 12px 16px;
+  }
+  .kds-tab-pill {
+    padding: 8px 18px;
+    font-size: 14px;
+  }
+  .kds-logout-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+/* ── KDS Order Card (Matching Target Reference) ── */
+.kds-order-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 24px;
+  padding: 22px 24px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
-  transition: var(--transition-smooth);
 }
 
-.k-order-card:hover {
-  box-shadow: var(--shadow-md);
+.kds-order-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-color: #94a3b8;
 }
-.k-card-incoming { border-color: var(--color-warning); }
-.k-card-preparing { border-color: var(--color-info); }
-.k-card-ready { border-color: var(--color-success); }
-.k-card-top-bar {
+
+/* Card Header: Table Number & Time */
+.kds-card-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  margin-bottom: 2px;
 }
 
-.k-table-tag {
-  font-size: var(--font-size-card-title);
+.kds-table-title {
+  font-size: 22px;
   font-weight: 800;
-  background-color: var(--color-text-primary);
-  color: var(--color-text-white);
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
-.k-time-tag {
-  font-size: var(--font-size-small);
-  font-weight: 700;
-  color: var(--color-text-muted);
+.kds-order-time {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
 }
 
-.k-card-mid-info {
+/* Order Subtitle */
+.kds-order-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+/* Main Content: Food Items List */
+.kds-items-list {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
-.k-order-num {
-  font-size: var(--font-size-heading);
-  font-weight: 800;
-  color: var(--color-text-primary);
-}
-
-.k-customer-name {
-  font-size: var(--font-size-small);
-  color: var(--color-text-secondary);
-}
-
-.k-items-text {
-  font-size: var(--font-size-body);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-top: 6px;
-  line-height: 1.4;
-}
-
-.k-card-meta-row {
+.kds-item-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-border-light);
+  gap: 12px;
 }
 
-.k-pay-badge {
-  font-size: var(--font-size-caption);
+.kds-item-name {
+  font-size: 15.5px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: var(--radius-pill);
+  color: #0f172a;
+  line-height: 1.35;
+  text-transform: lowercase;
 }
 
-.k-pay-badge.paid {
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-}
-
-.k-pay-badge.pending {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-
-.k-amount-tag {
-  font-size: var(--font-size-card-title);
+.kds-item-qty {
+  font-size: 15.5px;
   font-weight: 800;
-  color: var(--color-text-primary);
+  color: #0f172a;
+  white-space: nowrap;
+  margin-left: auto;
+  letter-spacing: 0.02em;
 }
 
-.k-card-action-bar {
+/* Card Footer: Action Button */
+.kds-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: auto;
   padding-top: 4px;
 }
 
-.k-act-btn {
-  width: 100%;
-  padding: 10px 16px;
-  border-radius: var(--radius-button);
-  font-size: var(--font-size-body);
-  font-weight: 800;
-  color: var(--color-text-white);
-  transition: var(--transition-smooth);
-}
-.btn-start { background-color: var(--color-primary); }
-.btn-start:hover { background-color: var(--color-primary-hover); }
-
-
-.btn-ready { background-color: var(--color-success); }
-.btn-ready:hover { opacity: 0.9; }
-.btn-details {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+.kds-action-btn {
+  background: #FF7A1A;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 9px 24px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 122, 26, 0.25);
+  transition: all 0.15s ease;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .kitchen-content-area { margin-left: 0; }
-  .kitchen-hamburger-btn { display: block; }
-  .kitchen-summary-grid { grid-template-columns: repeat(2, 1fr); }
-  .kitchen-main-body { padding: 18px 16px 32px; }
+.kds-action-btn:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 122, 26, 0.35);
 }
 
-@media (max-width: 500px) {
-  .kitchen-summary-grid { grid-template-columns: 1fr; }
+.kds-ready-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 9999px;
+}
+
+/* Empty & Loading States */
+.kds-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.kds-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #FF7A1A;
+  border-radius: 50%;
+  animation: kdsSpin 0.7s linear infinite;
+  margin-bottom: 16px;
 }
