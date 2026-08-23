@@ -51,7 +51,7 @@ const TablesPage = () => {
                     setQrDataUrl(selectedQrTable.qrImageBase64);
                 } else {
                     const clientUrl = (env.clientUrl || window.location.origin).replace(/\/+$/, "");
-                    const fullQrUrl = `${clientUrl}/customer/menu/${selectedQrTable.qrToken}`;
+                    const fullQrUrl = `${clientUrl}/menu/${selectedQrTable.qrToken}`;
                     const url = await QRCode.toDataURL(fullQrUrl, { width: 320, margin: 2 });
                     setQrDataUrl(url);
                     // Persist to DB asynchronously - disabled

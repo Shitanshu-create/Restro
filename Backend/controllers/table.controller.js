@@ -30,7 +30,7 @@ async function createTableController(req, res, next) {
                 capacity: newTable.capacity,
                 isOccupied: newTable.isOccupied,
                 occupiedAt: newTable.occupiedAt,
-                qrUrl: `${process.env.CLIENT_URL}/menu?table=${newTable.qrToken}`
+                qrUrl: `${process.env.CLIENT_URL}/menu/${newTable.qrToken}`
             }
         });
     } catch (error) {
@@ -60,7 +60,7 @@ async function getAllTablesController(req, res, next) {
             isOccupied: table.isOccupied,
             occupiedAt: table.occupiedAt,
             qrImageBase64: table.qrImageBase64 || null,
-            qrUrl: `${process.env.CLIENT_URL}/menu?table=${table.qrToken}`
+            qrUrl: `${process.env.CLIENT_URL}/menu/${table.qrToken}`
         }));
         res.status(200).json({
             success: true,
@@ -162,7 +162,7 @@ async function toggleTableAvailabilityController(req, res, next) {
                 isOccupied: table.isOccupied,
                 occupiedAt: table.occupiedAt,
                 qrImageBase64: table.qrImageBase64,
-                qrUrl: `${process.env.CLIENT_URL}/menu?table=${table.qrToken}`
+                qrUrl: `${process.env.CLIENT_URL}/menu/${table.qrToken}`
             }
         });
     } catch (error) {

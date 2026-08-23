@@ -36,8 +36,8 @@ function App() {
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path='/' element={<LandingPage isLoggedIn={isLoggedIn} user={user} />} />
-          <Route path='/customer/menu/:qrToken' element={<CustomerMenuPage />} />
-          <Route path='/customer/menu' element={<CustomerMenuPage />} />
+          <Route path='/menu/:qrToken' element={<CustomerMenuPage />} />
+          <Route path='/menu' element={<CustomerMenuPage />} />
           <Route path='/register'
             element={isLoggedIn ? <Navigate to={getRedirectPath(user)} /> :
               (<Register
