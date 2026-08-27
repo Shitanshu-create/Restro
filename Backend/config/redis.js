@@ -6,7 +6,6 @@ let redisClient = null;
 try {
     redisClient = new Redis(env.redisUrl, {
         maxRetriesPerRequest: null, // Disable max retries per request
-        enableOfflineQueue: false, // Immediately fail requests if Redis is offline instead of hanging
         retryStrategy(times) {
             // Wait up to 3 seconds between retries
             return Math.min(times * 100, 3000);
