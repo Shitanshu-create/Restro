@@ -1,7 +1,6 @@
-import React from "react";
 import { useAuth } from "../../auth/hooks/useAuth.js";
 import "../styles/DashboardHeader.css";
-const DashboardHeader = ({ title, subtitle, onToggleMobileMenu }) => {
+const DashboardHeader = ({ title, onToggleMobileMenu }) => {
   const { user } = useAuth();
   const userName = user?.name || "Admin Staff";
   const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : (user?.isAdmin ? "Admin" : "Staff");

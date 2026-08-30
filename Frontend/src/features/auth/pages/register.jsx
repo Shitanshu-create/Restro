@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import { validateRegisterInput } from "../utils/authValidation.js";
 import "../styles/register.css";
-const Register = ({ onBack, onOpenLogin, onRegisterSuccess }) => {
+const Register = ({ onBack, onOpenLogin }) => {
   const { handleRegister } = useAuth();
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);

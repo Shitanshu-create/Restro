@@ -11,6 +11,7 @@ import PaymentsPage from "./PaymentsPage.jsx";
 import MenuPage from "./MenuPage.jsx";
 import StaffsPage from "./StaffsPage.jsx";
 import ReviewsPage from "./ReviewsPage.jsx";
+import NotFoundPage from "../../../pages/404NotFound.jsx";
 import "../styles/adminPanel.css";
 
 
@@ -92,7 +93,7 @@ const AdminPanel = () => {
             <Route path="menu" element={<MenuPage />} />
             <Route path="staffs" element={<StaffsPage />} />
             <Route path="reviews" element={<ReviewsPage />} />
-            <Route path="*" element={<DashboardPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
       </div>

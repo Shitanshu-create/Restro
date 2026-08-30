@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import StatCard from "../components/StatCard.jsx";
 import { getAllStaff, toggleStaffApproval, removeStaff } from "../api/admin.api.js";
 import { useAuth } from "../../auth/hooks/useAuth.js";
@@ -12,7 +12,6 @@ const StaffsPage = () => {
     const [actionMsg, setActionMsg] = useState(null);
     const [activeTab, setActiveTab] = useState("All");
     const loadStaff = useCallback(async () => {
-        setLoading(true);
         setError(null);
         const res = await getAllStaff();
         if (res.success) {
@@ -23,9 +22,9 @@ const StaffsPage = () => {
         setLoading(false);
     }, []);
     useEffect(() => {
-        loadStaff();
+        Promise.resolve().then(loadStaff);
     }, [loadStaff]);
-    const handleToggleApproval = async (staffId, name, currentActive) => {
+    const handleToggleApproval = async (staffId, name) => {
         setActionMsg(null);
         const res = await toggleStaffApproval(staffId);
         if (res.success) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import "../styles/DishDetailModal.css";
 
 const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
@@ -6,26 +6,16 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
   const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
-    if (dish && Array.isArray(dish.variants) && dish.variants.length > 0) {
-      setSelectedVariant(dish.variants[0]);
-    } else {
-      setSelectedVariant(null);
-    }
-    setSelectedAddOns([]);
-    setQuantity(1);
-  }, [dish, isOpen]);
-
   if (!isOpen || !dish) return null;
+
+  const activeVariant = selectedVariant !== null ? selectedVariant : (Array.isArray(dish.variants) && dish.variants.length > 0 ? dish.variants[0] : null);
 
   const variants = Array.isArray(dish.variants) ? dish.variants : [];
   const addOns = Array.isArray(dish.addOns) ? dish.addOns : [];
 
-  const basePrice = selectedVariant ? Number(selectedVariant.price || 0) : Number(dish.price || 0);
-  const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + Number(a.price || 0), 0);
-  const unitPrice = basePrice + addOnsTotal;
+  const unitPrice = (activeVariant ? activeVariant.price : dish.price) + selectedAddOns.reduce((s, a) => s + (a.price || 0), 0);
   const totalPrice = unitPrice * quantity;
-  const isSubmitDisabled = variants.length > 0 && !selectedVariant;
+  const isSubmitDisabled = variants.length > 0 && !activeVariant;
 
   const toggleAddOn = (addon) => {
     setSelectedAddOns((prev) =>
@@ -40,8 +30,8 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
       ...dish,
       isCustomized: true,
       price: unitPrice,
-      variantPrice: selectedVariant ? selectedVariant.price : null,
-      quantity: selectedVariant ? selectedVariant.name : "Full",
+      variantPrice: activeVariant ? activeVariant.price : null,
+      quantity: activeVariant ? activeVariant.name : "Full",
       selectedAddOns,
       count: quantity
     });
@@ -99,7 +89,7 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
                     <input
                       type="radio"
                       name="portionVariant"
-                      checked={selectedVariant?.name === v.name}
+                      checked={activeVariant?.name === v.name}
                       onChange={() => setSelectedVariant(v)}
                     />
                     <span className="option-label">{v.name}</span>

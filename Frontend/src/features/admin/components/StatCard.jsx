@@ -1,4 +1,3 @@
-import React from "react";
 import "../styles/StatCard.css";
 const StatCard = ({ title, value, subtext, subtextColor = "green", icon }) => {
   return (

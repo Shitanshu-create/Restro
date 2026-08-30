@@ -11,11 +11,10 @@ export function useMenu() {
 
 
     const loadMenu = useCallback(async () => {
-        setLoading(true);
-        setError(null);
         const res = await customerApi.getPublicMenu();
         if (res.success) {
             setCategories(res.categories || []);
+            setError(null);
         } else {
             setError(res.message);
         }
@@ -23,7 +22,9 @@ export function useMenu() {
     }, []);
 
 
-    useEffect(() => { loadMenu(); }, [loadMenu]);
+    useEffect(() => {
+        Promise.resolve().then(loadMenu);
+    }, [loadMenu]);
 
 
     return { categories, loading, error, reload: loadMenu };
@@ -31,20 +32,17 @@ export function useMenu() {
 
 
 export function useCustomerAuth() {
-    const [customer, setCustomer] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
+    const [customer, setCustomer] = useState(() => {
         const token = localStorage.getItem("customerToken");
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split(".")[1]));
                 if (payload.exp * 1000 > Date.now()) {
-                    setCustomer({
+                    return {
                         customer_id: payload.customerId,
                         name: payload.name,
                         phoneNo: payload.phone
-                    });
+                    };
                 } else {
                     localStorage.removeItem("customerToken");
                 }
@@ -52,7 +50,9 @@ export function useCustomerAuth() {
                 localStorage.removeItem("customerToken");
             }
         }
-    }, []);
+        return null;
+    });
+    const [loading, setLoading] = useState(false);
 
     const handleSendOtp = async (phone) => {
         setLoading(true);
@@ -86,7 +86,7 @@ export function useCustomerAuth() {
 
 export function useCustomerOrders() {
     const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [readyNotifications, setReadyNotifications] = useState([]);
     const prevOrdersRef = useRef([]);
@@ -94,12 +94,9 @@ export function useCustomerOrders() {
 
     const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        if (isFirstLoad.current) {
-            setLoading(true);
-        }
-        setError(null);
         const res = await customerApi.getMyOrders();
         if (res.success) {
+            setError(null);
             const fetchedOrders = res.orders || [];
             
             // On subsequent loads, check for orders transitioning to 'Ready' status
@@ -128,7 +125,7 @@ export function useCustomerOrders() {
 
 
     useEffect(() => {
-        loadOrders();
+        Promise.resolve().then(loadOrders);
         const interval = setInterval(loadOrders, 180000); // 3 minutes polling
         return () => clearInterval(interval);
     }, [loadOrders]);

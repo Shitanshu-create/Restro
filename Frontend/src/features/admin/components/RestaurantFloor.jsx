@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTables, useOrders } from "../hooks/useAdmin.js";
 import "../styles/RestaurantFloor.css";
 

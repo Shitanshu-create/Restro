@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as adminApi from "../api/admin.api.js";
 export function useTables() {
     const [tables, setTables] = useState([]);
@@ -6,13 +6,10 @@ export function useTables() {
     const [error, setError] = useState(null);
     const isFirstLoad = useRef(true);
     const loadTables = useCallback(async () => {
-        if (isFirstLoad.current) {
-            setLoading(true);
-        }
-        setError(null);
         const res = await adminApi.getAllTables();
         if (res.success) {
             setTables(res.tables || []);
+            setError(null);
         } else {
             setError(res.message);
         }
@@ -20,7 +17,7 @@ export function useTables() {
         isFirstLoad.current = false;
     }, []);
     useEffect(() => {
-        loadTables();
+        Promise.resolve().then(loadTables);
         const interval = setInterval(loadTables, 180000);
         return () => clearInterval(interval);
     }, [loadTables]);
@@ -34,26 +31,6 @@ export function useTables() {
         if (res.success) await loadTables();
         return res;
     };
-    /*
-    const handleSaveQr = async (tableNumber, qrImageBase64) => {
-        const res = await adminApi.refreshTableQr(tableNumber, qrImageBase64);
-        if (res.success) {
-            setTables((prev) =>
-                prev.map((t) => (t.tableNumber === tableNumber ? { ...t, qrImageBase64: res.qrImageBase64 } : t))
-            );
-        }
-        return res;
-    };
-    const handleRegenerateQr = async (tableNumber) => {
-        const res = await adminApi.regenerateTableQrToken(tableNumber);
-        if (res.success) {
-            setTables((prev) =>
-                prev.map((t) => (t.tableNumber === tableNumber ? { ...t, qrToken: res.qrToken, qrImageBase64: null } : t))
-            );
-        }
-        return res;
-    };
-    */
     const handleToggleTableAvailability = async (tableNumber) => {
         // Optimistic update
         setTables((prev) =>
@@ -71,19 +48,18 @@ export function useMenu() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const loadMenu = useCallback(async () => {
-        setLoading(true);
-        setError(null);
         const [catRes, itemRes] = await Promise.all([
             adminApi.fetchAllCategories(),
             adminApi.fetchAllItems()
         ]);
+        setError(null);
         if (catRes.success) setCategories(catRes.categories || []);
         if (itemRes.success) setItems(itemRes.items || []);
         if (!catRes.success) setError(catRes.message);
         setLoading(false);
     }, []);
     useEffect(() => {
-        loadMenu();
+        Promise.resolve().then(loadMenu);
     }, [loadMenu]);
     const handleCreateItem = async (itemData) => {
         const res = await adminApi.createItem(itemData);
@@ -178,13 +154,10 @@ export function useOrders() {
     const [error, setError] = useState(null);
     const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        if (isFirstLoad.current) {
-            setLoading(true);
-        }
-        setError(null);
         const res = await adminApi.getAllOrders();
         if (res.success) {
             setOrders(res.orders || []);
+            setError(null);
         } else {
             setError(res.message);
         }
@@ -192,7 +165,7 @@ export function useOrders() {
         isFirstLoad.current = false;
     }, []);
     useEffect(() => {
-        loadOrders();
+        Promise.resolve().then(loadOrders);
         const interval = setInterval(loadOrders, 180000);
         return () => clearInterval(interval);
     }, [loadOrders]);
@@ -237,11 +210,10 @@ export function useReviews() {
     const [error, setError] = useState(null);
 
     const loadReviews = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
         const res = await adminApi.getAllReviews(params);
         if (res.success) {
             setReviews(res.reviews || []);
+            setError(null);
         } else {
             setError(res.message);
         }
@@ -249,7 +221,7 @@ export function useReviews() {
     }, []);
 
     useEffect(() => {
-        loadReviews();
+        Promise.resolve().then(loadReviews);
     }, [loadReviews]);
 
     return { reviews, loading, error, reload: loadReviews };

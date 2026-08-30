@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import StatCard from "../components/StatCard.jsx";
 import { useTables } from "../hooks/useAdmin.js";
@@ -40,7 +40,7 @@ const TablesPage = () => {
     // Generate or fetch QR code when modal opens
     useEffect(() => {
         if (!selectedQrTable) {
-            setQrDataUrl("");
+            Promise.resolve().then(() => setQrDataUrl(""));
             return;
         }
 

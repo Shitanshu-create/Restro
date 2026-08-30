@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCustomerAuth } from "../hooks/useCustomer.js";
 import "../styles/OtpModal.css";
 const OtpModal = ({ onSuccess, onClose }) => {

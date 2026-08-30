@@ -1,13 +1,7 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../features/auth/hooks/useAuth.js";
 import "./Sidepanel.css";
 const Sidepanel = ({ activePage, onPageChange, isOpen, onClose, mode }) => {
-  const { user } = useAuth();
-  const userName = user?.name || "Admin Staff";
-  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : (user?.isAdmin ? "Admin" : "Staff");
-  const userInitials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-    : "AD";
   const allNavItems = [
     {
       id: "dashboard",
@@ -115,7 +109,7 @@ const Sidepanel = ({ activePage, onPageChange, isOpen, onClose, mode }) => {
     document.documentElement.setAttribute("data-theme", nextTheme);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 

@@ -1,16 +1,16 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useMenu } from "../hooks/useAdmin.js";
 import MenuDrawer from "../components/MenuDrawer.jsx";
 import "../styles/MenuPage.css";
 
 const MenuPage = () => {
   const {
-    categories, items, loading, error,
+    categories, items, loading,
     handleCreateItem, handleCreateCategory,
     handleRemoveItem, handleRemoveCategory,
     handleToggleAvailability, handleUpdateMenuItem,
     handleUpdateCategory, handleReorderCategories,
-    handleBulkOperations, reload
+    handleBulkOperations
   } = useMenu();
 
   // State management
@@ -257,7 +257,7 @@ const MenuPage = () => {
           setActionMsg(`Successfully imported ${importedDishes.length} menu items!`);
           setTimeout(() => setActionMsg(null), 4000);
         }
-      } catch (err) {
+      } catch {
         alert("Invalid JSON menu file");
       }
     };
@@ -268,6 +268,7 @@ const MenuPage = () => {
     <div className="swiggy-menu-page">
       {/* 1. Header Bar */}
       <header className="swiggy-menu-header">
+        {actionMsg && <div className="login-error" style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e", padding: "8px 12px", borderRadius: "6px", marginBottom: "12px" }}>{actionMsg}</div>}
         <div className="header-right-actions">
           <label className="btn-import-menu">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

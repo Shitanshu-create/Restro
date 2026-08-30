@@ -12,9 +12,9 @@ const Login = ({ onBack, onOpenRegister, onLoginSuccess }) => {
     const params = new URLSearchParams(window.location.search);
     const err = params.get("error");
     if (err === "email_exists") {
-      setError("This email is already registered. Please log in with your email and password.");
+      Promise.resolve().then(() => setError("This email is already registered. Please log in with your email and password."));
     } else if (err === "oauth_failed") {
-      setError("Social login failed. Please try again.");
+      Promise.resolve().then(() => setError("Social login failed. Please try again."));
     }
   }, []);
 

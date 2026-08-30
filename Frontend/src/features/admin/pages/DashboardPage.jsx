@@ -1,14 +1,12 @@
-import React from "react";
 import StatCard from "../components/StatCard.jsx";
 import LiveOrdersList from "../components/LiveOrdersList.jsx";
 import RestaurantFloor from "../components/RestaurantFloor.jsx";
 import RevenueTrendChart from "../components/RevenueTrendChart.jsx";
 import TopSellingItems from "../components/TopSellingItems.jsx";
-import { useTables, useOrders } from "../hooks/useAdmin.js";
+import { useOrders } from "../hooks/useAdmin.js";
 import "../styles/DashboardPage.css";
 
 const DashboardPage = () => {
-  const { tables } = useTables();
   const { orders } = useOrders();
 
   const todayRevenue = orders

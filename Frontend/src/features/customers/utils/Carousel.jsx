@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import "./Carousel.css";
 
@@ -92,8 +92,10 @@ const Carousel = ({
   // Adjust current index if perView changes
   useEffect(() => {
     if (currentIndex > maxIndex) {
-      setCurrentIndex(maxIndex);
-      updateTrackPosition(maxIndex);
+      Promise.resolve().then(() => {
+        setCurrentIndex(maxIndex);
+        updateTrackPosition(maxIndex);
+      });
     }
   }, [maxIndex, currentIndex, updateTrackPosition]);
 

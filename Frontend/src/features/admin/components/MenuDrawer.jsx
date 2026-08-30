@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../styles/MenuDrawer.css";
 
 const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDelete }) => {
@@ -27,48 +27,50 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    if (item) {
-      const img = item.image || "";
-      const imgUrl = item.imageUrl || (img.startsWith("http") ? img : "");
-      setFormData({
-        id: item.id || "",
-        name: item.name || "",
-        description: item.description || "",
-        categoryName: item.categoryName || (categories[0]?.name || ""),
-        price: item.price !== undefined && item.price !== null ? item.price : "",
-        discountPrice: item.discountPrice !== undefined ? item.discountPrice : "",
-        preparationTime: item.preparationTime || 15,
-        isVeg: item.isVeg !== undefined ? item.isVeg : true,
-        isAvailable: item.isAvailable !== undefined ? item.isAvailable : true,
-        isBestseller: item.isBestseller || false,
-        isRecommended: item.isRecommended || false,
-        image: img,
-        imageUrl: imgUrl,
-        variants: Array.isArray(item.variants) ? item.variants : [],
-        addOns: Array.isArray(item.addOns) ? item.addOns : []
-      });
-      setImageTab(imgUrl && !img.startsWith("data:") ? "url" : "file");
-    } else {
-      // New item mode
-      const nextId = allItems && allItems.length > 0 ? Math.max(...allItems.map(i => Number(i.id) || 0)) + 1 : 101;
-      setFormData({
-        id: nextId,
-        name: "",
-        description: "",
-        categoryName: categories[0]?.name || "Main Course",
-        price: "",
-        discountPrice: "",
-        preparationTime: 15,
-        isVeg: true,
-        isAvailable: true,
-        isBestseller: false,
-        isRecommended: false,
-        image: "",
-        imageUrl: "",
-        variants: [],
-        addOns: []
-      });
-    }
+    Promise.resolve().then(() => {
+      if (item) {
+        const img = item.image || "";
+        const imgUrl = item.imageUrl || (img.startsWith("http") ? img : "");
+        setFormData({
+          id: item.id || "",
+          name: item.name || "",
+          description: item.description || "",
+          categoryName: item.categoryName || (categories[0]?.name || ""),
+          price: item.price !== undefined && item.price !== null ? item.price : "",
+          discountPrice: item.discountPrice !== undefined ? item.discountPrice : "",
+          preparationTime: item.preparationTime || 15,
+          isVeg: item.isVeg !== undefined ? item.isVeg : true,
+          isAvailable: item.isAvailable !== undefined ? item.isAvailable : true,
+          isBestseller: item.isBestseller || false,
+          isRecommended: item.isRecommended || false,
+          image: img,
+          imageUrl: imgUrl,
+          variants: Array.isArray(item.variants) ? item.variants : [],
+          addOns: Array.isArray(item.addOns) ? item.addOns : []
+        });
+        setImageTab(imgUrl && !img.startsWith("data:") ? "url" : "file");
+      } else {
+        // New item mode
+        const nextId = allItems && allItems.length > 0 ? Math.max(...allItems.map(i => Number(i.id) || 0)) + 1 : 101;
+        setFormData({
+          id: nextId,
+          name: "",
+          description: "",
+          categoryName: categories[0]?.name || "Main Course",
+          price: "",
+          discountPrice: "",
+          preparationTime: 15,
+          isVeg: true,
+          isAvailable: true,
+          isBestseller: false,
+          isRecommended: false,
+          image: "",
+          imageUrl: "",
+          variants: [],
+          addOns: []
+        });
+      }
+    });
   }, [item, categories, allItems, isOpen]);
 
   if (!isOpen) return null;

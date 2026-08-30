@@ -1,4 +1,3 @@
-import React from "react";
 import "../styles/MyOrdersModal.css";
 const MyOrdersModal = ({ isOpen, onClose, orders, loading, onRefresh }) => {
   if (!isOpen) return null;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "../styles/OrderHistoryModal.css";
 import { getPresetRange } from "./DateRangeFilter.jsx";
 
@@ -13,7 +13,7 @@ const PRESETS = [
 
 const STATUSES = ["All", "Incoming", "Preparing", "Ready", "Delivered"];
 
-const OrderHistoryModal = ({ isOpen, onClose, dateRange, onDateRangeChange, statusFilter, onStatusFilterChange, totalCount, totalRevenue }) => {
+const OrderHistoryModal = ({ isOpen, onClose, onDateRangeChange, statusFilter, onStatusFilterChange, totalCount, totalRevenue }) => {
   const [activePreset, setActivePreset] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");

@@ -6,7 +6,7 @@ import { loginUser, registerUser, logoutUser } from "../api/auth.api.js";
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  const { user, setUser, loading, setLoading } = context;
+  const { user, setUser, loading } = context;
 
   
   const handleRegister = async ({ name, email, password, role = "waiter" }) => {

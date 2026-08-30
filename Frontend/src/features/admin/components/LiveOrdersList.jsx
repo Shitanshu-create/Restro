@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useOrders } from "../hooks/useAdmin.js";
 import { useNavigate } from "react-router-dom";
 import "../styles/LiveOrdersList.css";
@@ -9,6 +9,15 @@ const LiveOrdersList = () => {
     const navigate = useNavigate();
     const tabs = ["All", "Incoming", "Preparing", "Ready"];
 
+    function calculateTimeAgo(dateStr, nowMs) {
+        const diffMs = nowMs - new Date(dateStr).getTime();
+        const mins = Math.max(1, Math.floor(diffMs / 60000));
+        if (mins < 60) return `${mins}m ago`;
+        const hrs = Math.floor(mins / 60);
+        return `${hrs}h ago`;
+    }
+
+    const [nowMs] = useState(() => Date.now());
     const formattedOrders = orders.map((o) => {
         const itemSummary = Array.isArray(o.items)
             ? o.items.map((i) => `${i.name || i.itemId}${i.quantity && i.quantity !== "Full" ? ` (${i.quantity})` : ""}`).join(", ")
@@ -25,18 +34,10 @@ const LiveOrdersList = () => {
             customer: o.customerName || `Cust #${o.customerId || "01"}`,
             items: itemSummary || "Order items",
             total: Number(o.amount || o.total || 0),
-            timeAgo: o.createdAt ? calculateTimeAgo(o.createdAt) : "2m ago",
+            timeAgo: o.createdAt ? calculateTimeAgo(o.createdAt, nowMs) : "2m ago",
             status: status,
         };
     });
-
-    function calculateTimeAgo(dateStr) {
-        const diffMs = Date.now() - new Date(dateStr).getTime();
-        const mins = Math.max(1, Math.floor(diffMs / 60000));
-        if (mins < 60) return `${mins}m ago`;
-        const hrs = Math.floor(mins / 60);
-        return `${hrs}h ago`;
-    }
 
     const filteredOrders = formattedOrders.filter((order) => {
         if (activeTab === "All") return true;

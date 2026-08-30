@@ -1,7 +1,7 @@
 import './App.css'
 import LandingPage from './pages/LandingPage.jsx';
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy } from 'react';
 import ProtectedRoute from './features/auth/components/ProtectedRoute.jsx';
 import { useAuth } from './features/auth/hooks/useAuth.js';
 const Login = lazy(() => import('./features/auth/pages/login.jsx'));
@@ -9,6 +9,8 @@ const Register = lazy(() => import('./features/auth/pages/register.jsx'));
 const AdminPanel = lazy(() => import('./features/admin/pages/adminPanel.jsx'));
 const KitchenDashboard = lazy(() => import('./features/kitchen/pages/KitchenDashboard.jsx'));
 const CustomerMenuPage = lazy(() => import('./features/customers/pages/CustomerMenuPage.jsx'));
+const NotFoundPage = lazy(() => import('./pages/404NotFound.jsx'));
+
 function LoadingScreen() {
   return (
     <main className="app-loading">
@@ -18,9 +20,10 @@ function LoadingScreen() {
     </main>
   );
 }
+
 function App() {
   const navigate = useNavigate();
-  const { user, loading, handleLogout } = useAuth();
+  const { user, loading } = useAuth();
   const isLoggedIn = !!user;
   if (loading) {
     return <LoadingScreen />
@@ -38,6 +41,8 @@ function App() {
           <Route path='/' element={<LandingPage isLoggedIn={isLoggedIn} user={user} />} />
           <Route path='/menu/:qrToken' element={<CustomerMenuPage />} />
           <Route path='/menu' element={<CustomerMenuPage />} />
+          <Route path='/customer/menu/:qrToken' element={<CustomerMenuPage />} />
+          <Route path='/customer/menu' element={<CustomerMenuPage />} />
           <Route path='/register'
             element={isLoggedIn ? <Navigate to={getRedirectPath(user)} /> :
               (<Register
@@ -62,6 +67,7 @@ function App() {
               <KitchenDashboard />
             </ProtectedRoute>
           } />
+          <Route path='*' element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </>

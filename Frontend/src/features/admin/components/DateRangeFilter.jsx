@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { useState } from "react";
 import "../styles/DateRangeFilter.css";
 
 const PRESETS = [

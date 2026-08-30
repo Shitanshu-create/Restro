@@ -79,7 +79,7 @@ export async function getMe() {
     try {
         const response = await api.get("/api/auth/getMe", {});
         return response.data;
-    } catch (err) {
+    } catch {
         return null;
     }
 }

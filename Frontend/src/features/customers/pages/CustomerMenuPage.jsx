@@ -179,8 +179,10 @@ const CustomerMenuPage = () => {
         setIsResolvingTable(false);
       });
     } else {
-      setTableError("No table QR code provided");
-      setIsResolvingTable(false);
+      Promise.resolve().then(() => {
+        setTableError("No table QR code provided");
+        setIsResolvingTable(false);
+      });
     }
   }, [urlQrToken]);
 
@@ -194,7 +196,6 @@ const CustomerMenuPage = () => {
     }))
   ], [categories]);
 
-  const selectedCategory = categoryList.find((cat) => cat.id === selectedCategoryId);
   const isAllView = selectedCategoryId === "all";
 
   const allItems = useMemo(() => {

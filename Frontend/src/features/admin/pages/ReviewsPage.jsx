@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useReviews } from "../hooks/useAdmin.js";
 import DateRangeFilter, { getPresetRange } from "../components/DateRangeFilter.jsx";
 import StatCard from "../components/StatCard.jsx";
@@ -7,7 +7,7 @@ import "../styles/ReviewsPage.css";
 const STAR_TABS = ["All", "5 Stars", "4 Stars", "3 Stars", "2 Stars", "1 Star"];
 
 const ReviewsPage = () => {
-    const { reviews, loading, error, reload } = useReviews();
+    const { reviews, loading, error } = useReviews();
     const [activeStarTab, setActiveStarTab] = useState("All");
     const [dateRange, setDateRange] = useState(() => getPresetRange("today"));
     const [search, setSearch] = useState("");

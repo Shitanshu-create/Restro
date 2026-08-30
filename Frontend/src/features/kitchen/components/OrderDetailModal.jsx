@@ -1,4 +1,3 @@
-import React from "react";
 import "../styles/OrderDetailModal.css";
 
 const OrderDetailModal = ({ order, onClose, onUpdateStatus, onMarkPaid }) => {

@@ -11,14 +11,11 @@ export function useKitchen() {
     const [error, setError] = useState(null);
     const isFirstLoad = useRef(true);
     const loadOrders = useCallback(async () => {
-        if (isFirstLoad.current) {
-            setLoading(true);
-        }
-        setError(null);
         const [pendingRes, readyRes] = await Promise.all([
             kitchenApi.getPendingOrders(),
             kitchenApi.getReadyOrders()
         ]);
+        setError(null);
         if (pendingRes.success) setPendingOrders(pendingRes.orders || []);
         if (readyRes.success) setReadyOrders(readyRes.orders || []);
         if (!pendingRes.success) setError(pendingRes.message);
@@ -30,7 +27,7 @@ export function useKitchen() {
 
 
     useEffect(() => {
-        loadOrders();
+        Promise.resolve().then(loadOrders);
         const interval = setInterval(loadOrders, 180000);
         return () => clearInterval(interval);
     }, [loadOrders]);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { submitReview } from "../api/customer.api.js";
 import "../styles/ReviewModal.css";
 

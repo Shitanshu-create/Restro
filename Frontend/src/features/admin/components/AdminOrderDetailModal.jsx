@@ -1,4 +1,3 @@
-import React from "react";
 import "../../kitchen/styles/OrderDetailModal.css";
 
 const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
