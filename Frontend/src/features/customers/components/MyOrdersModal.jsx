@@ -70,13 +70,13 @@ const MyOrdersModal = ({ isOpen, onClose, orders, loading, onRefresh }) => {
                         itemsList.map((item, idx) => (
                           <div key={idx} className="myorder-item-row">
                             <span>{item.count || 1}x {item.name || item.itemId} ({item.quantity || "Full"})</span>
-                            <span>${((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}</span>
+                            <span>₹{((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}</span>
                           </div>
                         ))
                       ) : (
                         <div className="myorder-item-row">
                           <span>Items</span>
-                          <span>${Number(order.amount || 0).toFixed(2)}</span>
+                          <span>₹{Number(order.amount || 0).toFixed(2)}</span>
                         </div>
                       )}
                     </div>
@@ -87,7 +87,7 @@ const MyOrdersModal = ({ isOpen, onClose, orders, loading, onRefresh }) => {
                         </span>
                         <span className="pay-mode">({order.paymentMode || "Cash"})</span>
                       </div>
-                      <strong className="myorder-total">${Number(order.amount || 0).toFixed(2)}</strong>
+                      <strong className="myorder-total">₹{Number(order.amount || 0).toFixed(2)}</strong>
                     </div>
                   </div>
                 );

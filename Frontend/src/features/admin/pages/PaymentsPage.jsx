@@ -68,7 +68,7 @@ const PaymentsPage = () => {
       <div className="payments-stats-grid">
         <StatCard
           title="Selected Settled Volume"
-          value={`$${totalVolume.toFixed(2)}`}
+          value={`₹${totalVolume.toFixed(2)}`}
           subtext="Processed in selected period"
           subtextColor="green"
         />
@@ -123,7 +123,7 @@ const PaymentsPage = () => {
                     <td className="txn-id-cell">#{txn.orderId}</td>
                     <td className="table-name-cell">{txn.tableNo}</td>
                     <td className="method-cell">{txn.paymentMode || "Cash"}</td>
-                    <td className="amount-cell">${Number(txn.amount || 0).toFixed(2)}</td>
+                    <td className="amount-cell">₹{Number(txn.amount || 0).toFixed(2)}</td>
                     <td className="status-cell">
                       <span className={`settled-pill ${txn.paymentStatus === "Paid" ? "" : "pending-pill"}`}>
                         <span className="settled-dot" />

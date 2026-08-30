@@ -222,7 +222,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
 
             <div className="form-row grid-3">
               <div className="field-group">
-                <label>Base Price ($) *</label>
+                <label>Base Price (₹) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -234,7 +234,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
                 />
               </div>
               <div className="field-group">
-                <label>Discount Price ($)</label>
+                <label>Discount Price (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -402,7 +402,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
             <div className="items-builder-list">
               {formData.variants.map((v, idx) => (
                 <div key={idx} className="builder-item-chip">
-                  <span><strong>{v.name}</strong> • ${v.price.toFixed(2)}</span>
+                  <span><strong>{v.name}</strong> • ₹{v.price.toFixed(2)}</span>
                   <button type="button" onClick={() => handleRemoveVariant(idx)}>×</button>
                 </div>
               ))}
@@ -417,7 +417,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
               <input
                 type="number"
                 step="0.01"
-                placeholder="Price ($)"
+                placeholder="Price (₹)"
                 value={newVariant.price}
                 onChange={(e) => setNewVariant((prev) => ({ ...prev, price: e.target.value }))}
               />
@@ -431,12 +431,12 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
           <div className="form-section">
             <div className="section-header-with-action">
               <h3 className="section-title">Extra Add-ons (Optional)</h3>
-              <span className="sub-hint">e.g. Extra Cheese +$1.50</span>
+              <span className="sub-hint">e.g. Extra Cheese +₹1.50</span>
             </div>
             <div className="items-builder-list">
               {formData.addOns.map((a, idx) => (
                 <div key={idx} className="builder-item-chip">
-                  <span><strong>{a.name}</strong> • +${a.price.toFixed(2)}</span>
+                  <span><strong>{a.name}</strong> • +₹{a.price.toFixed(2)}</span>
                   <button type="button" onClick={() => handleRemoveAddOn(idx)}>×</button>
                 </div>
               ))}
@@ -451,7 +451,7 @@ const MenuDrawer = ({ isOpen, onClose, item, categories, allItems, onSave, onDel
               <input
                 type="number"
                 step="0.01"
-                placeholder="Extra Price ($)"
+                placeholder="Extra Price (₹)"
                 value={newAddOn.price}
                 onChange={(e) => setNewAddOn((prev) => ({ ...prev, price: e.target.value }))}
               />

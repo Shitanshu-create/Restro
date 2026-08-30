@@ -26,8 +26,8 @@
   color: var(--color-text-secondary);
 }
 .stat-card-icon-box {
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-input);
   background-color: var(--color-border-light);
   color: var(--color-text-body);

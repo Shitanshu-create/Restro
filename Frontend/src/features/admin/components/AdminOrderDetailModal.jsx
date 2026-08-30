@@ -127,7 +127,7 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                                         )}
                                     </div>
                                     <span className="saas-item-price">
-                                        ${((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}
+                                        ₹{((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}
                                     </span>
                                 </div>
                             ))
@@ -137,7 +137,7 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                                     <span className="subtle-qty-badge">1x</span>
                                     <span className="saas-item-name">{typeof order.items === "string" ? order.items : "Dish Item"}</span>
                                 </div>
-                                <span className="saas-item-price">${totalAmount}</span>
+                                <span className="saas-item-price">₹{totalAmount}</span>
                             </div>
                         )}
                     </div>
@@ -146,7 +146,7 @@ const AdminOrderDetailModal = ({ order, onClose, onMarkPaid, onMarkReady }) => {
                 {/* Total Amount Card */}
                 <div className="saas-total-card">
                     <span className="saas-total-label">Total Amount</span>
-                    <span className="saas-total-value">${totalAmount}</span>
+                    <span className="saas-total-value">₹{totalAmount}</span>
                 </div>
 
                 {/* Footer Actions (Hierarchy: Mark Ready > Mark Paid > Close) */}

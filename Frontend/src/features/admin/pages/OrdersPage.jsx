@@ -244,7 +244,7 @@ const OrdersPage = () => {
                       <div className="kanban-card-customer">{order.customer}</div>
                       <div className="kanban-card-items">{order.items}</div>
                       <div className="kanban-card-footer">
-                        <span className="kanban-card-amount">${order.total.toFixed(2)}</span>
+                        <span className="kanban-card-amount">₹{order.total.toFixed(2)}</span>
                         <span className="kanban-card-time">{order.time}</span>
                       </div>
                       <div className="kanban-card-actions">
@@ -307,7 +307,7 @@ const OrdersPage = () => {
                       </svg>
                       {order.time}
                     </td>
-                    <td className="order-total-cell">${order.total.toFixed(2)}</td>
+                    <td className="order-total-cell">₹{order.total.toFixed(2)}</td>
                     <td className="order-action-cell">
                       <div className="order-action-row">
                         {actionFor(order)}

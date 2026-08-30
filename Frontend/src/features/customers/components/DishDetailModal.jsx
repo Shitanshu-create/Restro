@@ -93,7 +93,7 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
                       onChange={() => setSelectedVariant(v)}
                     />
                     <span className="option-label">{v.name}</span>
-                    <strong className="option-price">${Number(v.price).toFixed(2)}</strong>
+                    <strong className="option-price">₹{Number(v.price).toFixed(2)}</strong>
                   </label>
                 ))}
               </div>
@@ -115,7 +115,7 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
                         onChange={() => toggleAddOn(a)}
                       />
                       <span className="option-label">{a.name}</span>
-                      <strong className="option-price">+${Number(a.price).toFixed(2)}</strong>
+                      <strong className="option-price">+₹{Number(a.price).toFixed(2)}</strong>
                     </label>
                   );
                 })}
@@ -137,7 +137,7 @@ const DishDetailModal = ({ isOpen, onClose, dish, onAddToCart }) => {
             disabled={isSubmitDisabled}
             style={{ opacity: isSubmitDisabled ? 0.6 : 1, cursor: isSubmitDisabled ? "not-allowed" : "pointer" }}
           >
-            {isSubmitDisabled ? "Select Portion Size" : `Add to Order • $${totalPrice.toFixed(2)}`}
+            {isSubmitDisabled ? "Select Portion Size" : `Add to Order • ₹${totalPrice.toFixed(2)}`}
           </button>
         </div>
       </div>

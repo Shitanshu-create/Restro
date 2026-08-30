@@ -504,9 +504,9 @@ const MenuPage = () => {
                   <span className="dish-card-category">{dish.categoryName}</span>
 
                   <div className="card-price-row">
-                    <span className="current-price">${Number(dish.price).toFixed(2)}</span>
+                    <span className="current-price">₹{Number(dish.price).toFixed(2)}</span>
                     {dish.discountPrice > 0 && (
-                      <span className="discount-price">${Number(dish.discountPrice).toFixed(2)}</span>
+                      <span className="discount-price">₹{Number(dish.discountPrice).toFixed(2)}</span>
                     )}
                   </div>
 

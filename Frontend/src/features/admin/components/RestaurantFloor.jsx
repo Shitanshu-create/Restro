@@ -56,7 +56,7 @@ const RestaurantFloor = () => {
             {/* Header */}
             <div className="status-card-header">
                 <div>
-                    <h2 className="status-card-title">restaurant status</h2>
+                    <h2 className="status-card-title">Restaurant Status</h2>
                     <p className="status-card-subtitle">Click table for live details • {tables.length} Tables Total</p>
                 </div>
                 <div className="live-layout-badge">
@@ -112,7 +112,7 @@ const RestaurantFloor = () => {
                     <div className="detail-box-bottom">
                         <span>Guests: <strong>{selectedTable.status === "available" ? `0/${selectedTable.capacity}` : `3/${selectedTable.capacity}`}</strong></span>
                         <span>Server: <strong>Alex R.</strong></span>
-                        <span>Current Bill: <strong className="bill-amount">${selectedTable.currentBill.toFixed(2)}</strong></span>
+                        <span>Current Bill: <strong className="bill-amount">₹{selectedTable.currentBill.toFixed(2)}</strong></span>
                     </div>
                 </div>
             )}

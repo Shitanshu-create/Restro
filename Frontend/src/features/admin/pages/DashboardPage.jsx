@@ -16,13 +16,13 @@ const DashboardPage = () => {
     })
     .reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0);
 
-  const displayRevenue = todayRevenue > 0 ? `$${todayRevenue.toFixed(2)}` : "$0.00";
+  const displayRevenue = todayRevenue > 0 ? `₹${todayRevenue.toFixed(2)}` : "₹0.00";
   const displayOrdersCount = orders.length;
 
   const paidOrders = orders.filter((o) => o.paymentStatus === "Paid");
   const displayAvgValue = paidOrders.length > 0
-    ? `$${(paidOrders.reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0) / paidOrders.length).toFixed(2)}`
-    : "$0.00";
+    ? `₹${(paidOrders.reduce((sum, o) => sum + Number(o.amount || o.total || 0), 0) / paidOrders.length).toFixed(2)}`
+    : "₹0.00";
 
   // Upsell proxy: orders containing customized items, variant prices, or add-ons
   const upsellOrders = orders.filter(
@@ -39,7 +39,7 @@ const DashboardPage = () => {
       {/* Top Row: 5 KPI Cards like Attachment */}
       <div className="stats-grid-5">
         <StatCard
-          title="revenue"
+          title="Revenue"
           value={displayRevenue}
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -49,7 +49,7 @@ const DashboardPage = () => {
           }
         />
         <StatCard
-          title="no of orders"
+          title="No of Orders"
           value={displayOrdersCount}
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -60,7 +60,7 @@ const DashboardPage = () => {
           }
         />
         <StatCard
-          title="avg order value"
+          title="Avg. Order Value"
           value={displayAvgValue}
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -70,7 +70,7 @@ const DashboardPage = () => {
           }
         />
         <StatCard
-          title="upsell performance"
+          title="Upsell Performance"
           value={displayUpsell}
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -79,7 +79,7 @@ const DashboardPage = () => {
           }
         />
         <StatCard
-          title="qr orders %"
+          title="QR Orders %"
           value={displayQr}
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

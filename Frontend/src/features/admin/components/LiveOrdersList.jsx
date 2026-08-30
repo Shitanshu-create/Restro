@@ -7,7 +7,7 @@ const LiveOrdersList = () => {
     const { orders, loading } = useOrders();
     const [activeTab, setActiveTab] = useState("All");
     const navigate = useNavigate();
-    const tabs = ["All", "Incoming", "Preparing", "Ready"];
+    const tabs = ["All", "Preparing", "Ready"];
 
     function calculateTimeAgo(dateStr, nowMs) {
         const diffMs = nowMs - new Date(dateStr).getTime();
@@ -26,7 +26,6 @@ const LiveOrdersList = () => {
         const tableNum = String(o.tableNo || "").replace("T-", "").padStart(1, "0");
         
         let status = o.orderStatus || "Preparing";
-        if (status === "Pending") status = "Incoming";
 
         return {
             id: o.orderId || o._id,
@@ -47,7 +46,7 @@ const LiveOrdersList = () => {
     return (
         <div className="recent-orders-card">
             <div className="recent-orders-header">
-                <h2 className="recent-orders-title">recent orders</h2>
+                <h2 className="recent-orders-title">Recent Orders</h2>
                 <div className="recent-orders-nav">
                     <div className="recent-orders-tabs">
                         {tabs.map((tab) => (
@@ -66,15 +65,15 @@ const LiveOrdersList = () => {
                         className="view-all-orders-link"
                         onClick={() => navigate("/admin/orders")}
                     >
-                        view all orders ↗
+                        View All Orders ↗
                     </button>
                 </div>
             </div>
             <div className="recent-orders-list">
                 {loading ? (
-                    <div className="empty-recent-msg">Loading orders...</div>
+                    <div className="empty-recent-msg">Loading Orders...</div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="empty-recent-msg">No recent orders</div>
+                    <div className="empty-recent-msg">No Recent Orders</div>
                 ) : (
                     filteredOrders.map((order) => (
                         <div key={order.id} className="recent-order-row">
@@ -94,7 +93,7 @@ const LiveOrdersList = () => {
                                 <div className="recent-dishes-summary">{order.items}</div>
                             </div>
                             <div className="recent-order-amount-col">
-                                <span className="recent-amount">${order.total.toFixed(2)}</span>
+                                <span className="recent-amount">₹{order.total.toFixed(2)}</span>
                                 <span className="recent-time-ago">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="12" cy="12" r="10" />

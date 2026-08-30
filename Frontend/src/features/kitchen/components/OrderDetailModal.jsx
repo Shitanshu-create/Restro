@@ -61,7 +61,7 @@ const OrderDetailModal = ({ order, onClose, onUpdateStatus, onMarkPaid }) => {
                       <span className="item-name">{item.name || item.itemId} ({item.quantity || "Full"})</span>
                     </div>
                     <span className="item-price">
-                      ${((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}
+                      ₹{((Number(item.price) || 0) * (item.quantity === "Half" ? 0.5 : 1) * (Number(item.count) || 1)).toFixed(2)}
                     </span>
                   </div>
                 ))
@@ -71,7 +71,7 @@ const OrderDetailModal = ({ order, onClose, onUpdateStatus, onMarkPaid }) => {
                     <span className="qty-tag">1x</span>
                     <span className="item-name">{order.items || "Dish"}</span>
                   </div>
-                  <span className="item-price">${Number(order.total || 0).toFixed(2)}</span>
+                  <span className="item-price">₹{Number(order.total || 0).toFixed(2)}</span>
                 </div>
               )}
             </div>
@@ -79,7 +79,7 @@ const OrderDetailModal = ({ order, onClose, onUpdateStatus, onMarkPaid }) => {
           {/* Total Price Row */}
           <div className="modal-total-price-row">
             <span>Total Order Amount</span>
-            <strong>${Number(order.total || 0).toFixed(2)}</strong>
+            <strong>₹{Number(order.total || 0).toFixed(2)}</strong>
           </div>
         </div>
         {/* Modal Footer Actions */}

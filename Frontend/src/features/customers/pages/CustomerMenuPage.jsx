@@ -520,7 +520,7 @@ const CustomerMenuPage = () => {
                         <h3>{dish.name}</h3>
                         <p>{dish.description || "Delicately prepared with fresh ingredients."}</p>
                         <div className="dish-card-footer">
-                          <strong>${Number(dish.price || 0).toFixed(2)}</strong>
+                          <strong>₹{Number(dish.price || 0).toFixed(2)}</strong>
                           {renderAddControl(dish, true)}
                         </div>
                       </div>
@@ -563,8 +563,8 @@ const CustomerMenuPage = () => {
                       <h3 className="dish-card-title">{dish.name}</h3>
                       <p className="dish-desc-snippet">{dish.description || "Delicately prepared with fresh ingredients."}</p>
                       <div className="dish-card-footer">
-                        <strong className="dish-price-text">${Number(dish.price || 0).toFixed(2)}</strong>
-                        {dish.discountPrice > 0 && <span className="dish-orig-price">${Number(dish.discountPrice).toFixed(2)}</span>}
+                        <strong className="dish-price-text">₹{Number(dish.price || 0).toFixed(2)}</strong>
+                        {dish.discountPrice > 0 && <span className="dish-orig-price">₹{Number(dish.discountPrice).toFixed(2)}</span>}
                         {renderAddControl(dish, true)}
                       </div>
                     </div>
@@ -582,7 +582,7 @@ const CustomerMenuPage = () => {
           <span className="floating-item-count">{totalCartCount} {totalCartCount === 1 ? "Item" : "Items"}</span>
           <span className="floating-divider" />
           <span className="floating-subtotal">Subtotal</span>
-          <strong className="floating-cart-total">${totalCartPrice.toFixed(2)}</strong>
+          <strong className="floating-cart-total">₹{totalCartPrice.toFixed(2)}</strong>
           <button type="button" className="floating-cart-btn" onClick={() => setIsCartOpen(true)}>
             View Cart <ArrowRightIcon />
           </button>
