@@ -13,6 +13,7 @@ import tableRouter from "./routes/table.route.js";
 import kitchenRouter from "./routes/kitchen.route.js";
 import paymentRouter from "./routes/payment.route.js";
 import reviewRouter from "./routes/review.route.js";
+import bannerRouter from "./routes/banner.route.js";
 const app = express();
 const csrfProtection = (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
@@ -92,6 +93,7 @@ app.use("/api/admin", tableRouter);
 app.use("/api/kitchen", kitchenRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/banners", bannerRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

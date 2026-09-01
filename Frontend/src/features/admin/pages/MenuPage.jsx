@@ -1,7 +1,123 @@
 import { useState, useMemo } from "react";
-import { useMenu } from "../hooks/useAdmin.js";
+import { useMenu, useBanners } from "../hooks/useAdmin.js";
 import MenuDrawer from "../components/MenuDrawer.jsx";
 import "../styles/MenuPage.css";
+
+const BannerModalManager = ({ isOpen, onClose }) => {
+  const { banners, loading, handleCreateBanner, handleDeleteBanner } = useBanners();
+  const [imageUrl, setImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  if (!isOpen) return null;
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      if (evt.target?.result) {
+        setImageUrl(evt.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    if (!imageUrl.trim()) return;
+    setIsSubmitting(true);
+    const res = await handleCreateBanner({ imageUrl: imageUrl.trim() });
+    setIsSubmitting(false);
+    if (res.success) {
+      setImageUrl("");
+      setMsg("Banner added successfully!");
+      setTimeout(() => setMsg(null), 3000);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="category-modal-card banner-modal-wide" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px", width: "92%" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>Banner Management</h3>
+          <button type="button" className="btn-modal-cancel" onClick={onClose} style={{ border: 0, background: "transparent", fontSize: "22px", cursor: "pointer" }}>×</button>
+        </div>
+
+        {msg && <div style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "8px 12px", borderRadius: "8px", marginBottom: "14px", fontSize: "13px", fontWeight: "600" }}>{msg}</div>}
+
+        {/* Add Banner Section */}
+        <div style={{ marginBottom: "24px", background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+          <h4 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: "700", color: "#334155" }}>Add Banner</h4>
+          <form onSubmit={handleAddSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="text"
+                placeholder="Paste Image URL or select file →"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "13px" }}
+              />
+              <label style={{ padding: "9px 12px", borderRadius: "8px", background: "#ffffff", border: "1px solid #cbd5e1", fontSize: "13px", cursor: "pointer", fontWeight: "600", color: "#475569", whiteSpace: "nowrap" }}>
+                Upload File
+                <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
+              </label>
+            </div>
+            {imageUrl && (
+              <div style={{ width: "100%", height: "80px", borderRadius: "8px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
+                <img src={imageUrl} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+            )}
+            <button
+              type="submit"
+              className="btn-modal-submit"
+              disabled={isSubmitting || !imageUrl.trim()}
+              style={{ padding: "10px", borderRadius: "8px", background: "var(--color-primary, #FF7A1A)", color: "#ffffff", border: 0, fontWeight: "700", fontSize: "14px", cursor: isSubmitting || !imageUrl.trim() ? "not-allowed" : "pointer", opacity: isSubmitting || !imageUrl.trim() ? 0.6 : 1 }}
+            >
+              {isSubmitting ? "Adding Banner..." : "+ Add Banner"}
+            </button>
+          </form>
+        </div>
+
+        {/* Existing Banners Section */}
+        <div>
+          <h4 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: "700", color: "#334155" }}>
+            Existing Banners ({banners.length})
+          </h4>
+          {loading ? (
+            <div style={{ fontSize: "13px", color: "#64748b", padding: "12px 0" }}>Loading banners...</div>
+          ) : banners.length === 0 ? (
+            <div style={{ color: "#64748b", fontSize: "13px", padding: "16px 0", textAlign: "center" }}>No active banners. Add a banner above!</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "260px", overflowY: "auto" }}>
+              {banners.map((b) => (
+                <div
+                  key={b._id}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", padding: "10px 14px", border: "1px solid #e2e8f0", borderRadius: "10px", background: "#ffffff" }}
+                >
+                  <img
+                    src={b.imageUrl}
+                    alt="Banner preview"
+                    style={{ width: "120px", height: "50px", objectFit: "cover", borderRadius: "8px", border: "1px solid #f1f5f9" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Remove this banner from customer menu?")) handleDeleteBanner(b._id);
+                    }}
+                    style={{ padding: "7px 16px", borderRadius: "8px", border: "1px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "all 0.15s ease" }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MenuPage = () => {
   const {
@@ -29,6 +145,7 @@ const MenuPage = () => {
 
   // Modal / Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [categoryModal, setCategoryModal] = useState(null); // 'create' or 'rename'
   const [targetCategoryName, setTargetCategoryName] = useState("");
@@ -279,13 +396,13 @@ const MenuPage = () => {
             Import JSON
             <input type="file" accept=".json" onChange={handleImportMenu} />
           </label>
-          <button type="button" className="btn-export-menu" onClick={handleExportMenu}>
+          <button type="button" className="btn-export-menu" onClick={() => setIsBannerModalOpen(true)}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
-            Export JSON
+            Manage Banners
           </button>
           <button type="button" className="btn-add-dish-primary" onClick={handleOpenAddDish}>
             + Add Dish
@@ -634,6 +751,11 @@ const MenuPage = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Banner Management Modal */}
+      {isBannerModalOpen && (
+        <BannerModalManager isOpen={isBannerModalOpen} onClose={() => setIsBannerModalOpen(false)} />
       )}
     </div>
   );

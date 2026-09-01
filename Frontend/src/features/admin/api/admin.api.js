@@ -306,3 +306,41 @@ export const getAllReviews = async (params = {}) => {
     }
 };
 
+// ── Banners (Admin) ──────────────────────────────────────────────────────────
+export const fetchAllAdminBanners = async () => {
+    try {
+        const res = await api.get("/api/banners/admin/all");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to fetch banners") };
+    }
+};
+
+export const createAdminBanner = async (bannerData) => {
+    try {
+        const res = await api.post("/api/banners/admin/create", bannerData);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to create banner") };
+    }
+};
+
+export const toggleAdminBanner = async (id) => {
+    try {
+        const res = await api.patch(`/api/banners/admin/toggle/${id}`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to toggle banner") };
+    }
+};
+
+export const deleteAdminBanner = async (id) => {
+    try {
+        const res = await api.delete(`/api/banners/admin/delete/${id}`);
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to delete banner") };
+    }
+};
+
+

@@ -38,6 +38,15 @@ export const getPublicMenu = async () => {
     }
 };
 
+export const fetchPublicBanners = async () => {
+    try {
+        const res = await api.get("/api/banners/public");
+        return res.data;
+    } catch (err) {
+        return { success: false, message: getErrorMessage(err, "Failed to load banners") };
+    }
+};
+
 
 
 export const resolveTable = async (qrToken) => {

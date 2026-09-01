@@ -226,3 +226,48 @@ export function useReviews() {
 
     return { reviews, loading, error, reload: loadReviews };
 }
+
+export function useBanners() {
+    const [banners, setBanners] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const loadBanners = useCallback(async () => {
+        const res = await adminApi.fetchAllAdminBanners();
+        if (res.success) {
+            setBanners(res.data || []);
+            setError(null);
+        } else {
+            setError(res.message);
+        }
+        setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        Promise.resolve().then(loadBanners);
+    }, [loadBanners]);
+
+    const handleCreateBanner = async (bannerData) => {
+        const res = await adminApi.createAdminBanner(bannerData);
+        if (res.success) await loadBanners();
+        return res;
+    };
+
+    const handleToggleBanner = async (id) => {
+        const res = await adminApi.toggleAdminBanner(id);
+        if (res.success) await loadBanners();
+        return res;
+    };
+
+    const handleDeleteBanner = async (id) => {
+        const res = await adminApi.deleteAdminBanner(id);
+        if (res.success) await loadBanners();
+        return res;
+    };
+
+    return {
+        banners, loading, error,
+        handleCreateBanner, handleToggleBanner, handleDeleteBanner,
+        reload: loadBanners
+    };
+}

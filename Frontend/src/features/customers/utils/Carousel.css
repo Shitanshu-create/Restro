@@ -40,25 +40,28 @@
 
 /* Banner Carousel Customization */
 .banner-carousel .carousel-viewport {
-  border-radius: 20px;
+  border-radius: 16px;
+  aspect-ratio: 2.59 / 1;
+  overflow: hidden;
+}
+
+.banner-carousel .carousel-slide {
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .banner-carousel .carousel-img {
-  height: 220px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 20px;
+  object-position: center;
+  border-radius: 16px;
+  box-shadow: none;
 }
 
-@media (min-width: 640px) {
-  .banner-carousel .carousel-img {
-    height: 300px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .banner-carousel .carousel-img {
-    height: 360px;
-  }
+.banner-carousel .carousel-dots {
+  margin-top: 6px;
+  gap: 6px;
 }
 
 /* Arrow Buttons */

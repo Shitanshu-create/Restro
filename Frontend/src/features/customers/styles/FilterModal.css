@@ -1,0 +1,198 @@
+.filter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.filter-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px 24px 28px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.filter-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.filter-modal-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.filter-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.filter-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.filter-modal-body {
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-options-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-chip-btn:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.filter-chip-btn.active {
+  border-color: var(--color-primary, #FF7A1A);
+  background: rgba(255, 122, 26, 0.08);
+  color: var(--color-primary, #FF7A1A);
+  font-weight: 700;
+}
+
+.diet-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.diet-dot.veg-dot {
+  border: 1.5px solid #16a34a;
+  background: #16a34a;
+}
+
+.diet-dot.nonveg-dot {
+  border: 1.5px solid #dc2626;
+  background: #dc2626;
+}
+
+.filter-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.filter-btn-reset {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn-reset:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.filter-btn-apply {
+  flex: 2;
+  padding: 14px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--color-primary, #FF7A1A);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 122, 26, 0.3);
+  transition: all 0.15s ease;
+}
+
+.filter-btn-apply:hover {
+  background: #e66600;
+}
+
+[data-theme="dark"] .filter-modal-card {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .filter-modal-header h3 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .filter-chip-btn {
+  background: #334155;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .filter-section-title {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .filter-close-btn {
+  background: #334155;
+  color: #94a3b8;
+}
